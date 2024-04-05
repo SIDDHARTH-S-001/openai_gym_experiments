@@ -36,6 +36,8 @@ class DQNAgent:
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
+        if len(self.memory) > 2000:
+            del self.memory[0]
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
@@ -50,6 +52,7 @@ class DQNAgent:
             if not done:
                 target = reward + self.gamma * np.amax(self.model(torch.FloatTensor(next_state)).detach().numpy())
             target_f = self.model(torch.FloatTensor(state)).detach().numpy()
+            target_f = np.reshape(target_f, (self.action_size,))  # Reshape to match action size
             target_f[action] = target
             self.optimizer.zero_grad()
             loss = nn.MSELoss()(self.model(torch.FloatTensor(state)), torch.FloatTensor(target_f))
@@ -57,6 +60,7 @@ class DQNAgent:
             self.optimizer.step()
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+
 
 # Initialize environment
 env = gymnasium.make('LunarLander-v2')
@@ -69,27 +73,27 @@ agent = DQNAgent(state_size, action_size)
 # Training the agent
 EPISODES = 1000
 for e in range(EPISODES):
-    state = env.reset()
+    state = env.reset()[0]
     state = np.reshape(state, [1, state_size])
     for time in range(500):
-        # env.render()
-        action = agent.act(state)
-        next_state, reward, done, _ = env.step(action)
-        reward = reward if not done else -10
-        next_state = np.reshape(next_state, [1, state_size])
-        agent.remember(state, action, reward, next_state, done)
-        state = next_state
-        if done:
-            print("episode: {}/{}, score: {}, e: {:.2}".format(e, EPISODES, time, agent.epsilon))
-            break
+            # env.render()
+            action = agent.act(state)
+            next_state, reward, done, _, _ = env.step(action)
+            reward = reward if not done else -10
+            next_state = np.reshape(next_state, [1, state_size])
+            agent.remember(state, action, reward, next_state, done)
+            state = next_state
+            if done:
+                print("episode: {}/{}, score: {}, e: {:.2}".format(e, EPISODES, time, agent.epsilon))
+                break
     if len(agent.memory) > 32:
         agent.replay(32)
 
 # Generate video of the trained agent
-env = monitoring(gym.make('LunarLander-v2'), './video', force=True)
-state = env.reset()
-done = False
-while not done:
-    action = agent.act(state)
-    state, _, done, _ = env.step(action)
-env.close()
+# env = monitoring(gymnasium.make('LunarLander-v2'), './video', force=True)
+# state = env.reset()
+# done = False
+# while not done:
+#     action = agent.act(state)
+#     state, _, done, _ = env.step(action)
+# env.close()
