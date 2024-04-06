@@ -67,7 +67,7 @@ state_size = env.observation_space.shape[0]
 action_size = env.action_space.n
 agent = AgentCartPole(state_size, action_size)
 batch_size = 100
-num_episodes = 100
+num_episodes = 50
 max_steps = 250
 update_target_frequency = 5
 
@@ -80,7 +80,7 @@ for episode in range(num_episodes):
     for step in range(max_steps):
         action = agent.act(state)
         next_state, reward, done, _, _ = env.step(action)
-        reward -= 0.01  # Apply the living penalty
+        reward += 0.01  # Apply the living bonua
         next_state = np.array(next_state).reshape(1, -1).astype(np.float32)
         agent.remember(state, action, reward, next_state, done)
         state = next_state
