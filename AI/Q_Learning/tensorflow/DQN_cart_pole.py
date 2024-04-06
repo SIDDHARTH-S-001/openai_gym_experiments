@@ -116,7 +116,7 @@ for episode in range(num_test_episodes):
             time.sleep(0.01)
 
         action = np.argmax(saved_model.predict(state)[0])
-        next_state, reward, done, _ = env.step(action)
+        next_state, reward, done, _, _ = env.step(action)
         state = np.array(next_state).reshape(1, -1).astype(np.float32)
         total_reward += reward
 
