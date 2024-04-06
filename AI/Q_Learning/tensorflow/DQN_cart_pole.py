@@ -71,6 +71,12 @@ num_episodes = 50
 max_steps = 250
 update_target_frequency = 5
 
+def render(env):
+    plt.clf()
+    plt.imshow(env.render())
+    plt.axis('off')
+    plt.show()
+
 # Train the model
 for episode in range(num_episodes):
     state = env.reset()[0]
@@ -119,6 +125,7 @@ for episode in range(num_test_episodes):
         next_state, reward, done, _, _ = env.step(action)
         state = np.array(next_state).reshape(1, -1).astype(np.float32)
         total_reward += reward
+        render(env)
 
         if done:
             break
