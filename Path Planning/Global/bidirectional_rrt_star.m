@@ -39,21 +39,36 @@ plot(goal(1), goal(2), 'ro', 'MarkerSize', 10, 'MarkerFaceColor', 'r');
 % Generate obstacles
 obstacles = struct('center', {}, 'radius', {});
 for i = 1:num_obstacles
-    obstacles(i).center = [rand * (x_lim(2) - x_lim(1)), rand * (y_lim(2) - y_lim(1))];
-    obstacles(i).radius = obstacle_radius;
-    viscircles(obstacles(i).center, obstacles(i).radius, 'EdgeColor', 'k');
+    obstacle_valid = false;
+    while ~obstacle_valid
+        new_obstacle_center = [rand * (x_lim(2) - x_lim(1)), rand * (y_lim(2) - y_lim(1))];
+        % Check if the new obstacle is not too close to existing obstacles
+        if ~any(arrayfun(@(obs) dist(new_obstacle_center, obs.center) <= 2 * obstacle_radius, obstacles))
+            obstacles(i).center = new_obstacle_center;
+            obstacles(i).radius = obstacle_radius;
+            viscircles(obstacles(i).center, obstacles(i).radius, 'EdgeColor', 'k');
+            obstacle_valid = true;
+        end
+    end
 end
 
 % Main loop
-for i = 1:max_iter
+for iter = 1:max_iter
     % Display iteration number
-    title(['Iteration: ', num2str(i)]);
+    title(['Iteration: ', num2str(iter)]);
     
     % Random sampling
     if rand < goal_sample_rate
         rand_point = goal;
     else
-        rand_point = [rand * (x_lim(2) - x_lim(1)), rand * (y_lim(2) - y_lim(1))];
+        rand_point_valid = false;
+        while ~rand_point_valid
+            rand_point = [rand * (x_lim(2) - x_lim(1)), rand * (y_lim(2) - y_lim(1))];
+            % Check if the random point is not within obstacles
+            if ~in_collision(rand_point, obstacles)
+                rand_point_valid = true;
+            end
+        end
     end
     
     % Extend start tree
@@ -115,7 +130,7 @@ for i = 1:max_iter
     pause(delay_time);
 end
 
-if i == max_iter
+if iter == max_iter
     disp('Max iterations reached. Path not found.');
 end
 
