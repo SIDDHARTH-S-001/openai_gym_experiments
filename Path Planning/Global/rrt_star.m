@@ -8,6 +8,11 @@ function RRTstar
     step_size = 2;
     goal_radius = 5;
     search_radius = 10;
+    num_obstacles = 20; % Number of obstacles
+    obstacle_size = 5; % Size of each obstacle
+
+    % Generate random obstacles
+    obstacles = generateObstacles(num_obstacles, obstacle_size, x_max, y_max);
 
     % Initialize the tree with the start node
     tree.nodes = start;
@@ -21,6 +26,11 @@ function RRTstar
     plot(start(1), start(2), 'go', 'MarkerSize', 10, 'MarkerFaceColor', 'g');
     plot(goal(1), goal(2), 'ro', 'MarkerSize', 10, 'MarkerFaceColor', 'r');
 
+    % Plot obstacles
+    for i = 1:num_obstacles
+        rectangle('Position', obstacles(i, :), 'FaceColor', [0, 0, 0]);
+    end
+
     for i = 1:max_iter
         % Sample random point
         rand_point = [rand * x_max, rand * y_max];
@@ -30,9 +40,9 @@ function RRTstar
 
         % Steer towards the random point
         new_point = steer(nearest_node, rand_point, step_size);
-        
+
         % Check if the new point is within the search radius and closer to the goal
-        if ~isCollision(nearest_node, new_point)
+        if ~isCollision(nearest_node, new_point, obstacles)
             % Find neighbors within the search radius
             neighbors = findNeighbors(tree.nodes, new_point, search_radius);
 
@@ -63,6 +73,11 @@ function RRTstar
     plotPath(tree, goal, goal_radius);
 end
 
+function obstacles = generateObstacles(num_obstacles, obstacle_size, x_max, y_max)
+    obstacles = rand(num_obstacles, 2) .* (repmat([x_max, y_max] - obstacle_size, num_obstacles, 1));
+    obstacles = [obstacles, repmat([obstacle_size, obstacle_size], num_obstacles, 1)];
+end
+
 function [nearest_node, nearest_idx] = nearestNode(nodes, point)
     dists = sqrt(sum((nodes - point).^2, 2));
     [~, nearest_idx] = min(dists);
@@ -78,9 +93,36 @@ function new_point = steer(from, to, step_size)
     new_point = from + direction;
 end
 
-function collision = isCollision(from, to)
+function collision = isCollision(from, to, obstacles)
     collision = false;
-    % Implement collision checking with obstacles if necessary
+    for i = 1:size(obstacles, 1)
+        obs = obstacles(i, :);
+        if lineIntersectsRect(from, to, obs)
+            collision = true;
+            return;
+        end
+    end
+end
+
+function intersects = lineIntersectsRect(p1, p2, rect)
+    % Check if the line segment from p1 to p2 intersects the rectangle
+    intersects = ...
+        lineIntersectsLine(p1, p2, rect(1:2), rect(1:2) + [rect(3), 0]) || ...
+        lineIntersectsLine(p1, p2, rect(1:2), rect(1:2) + [0, rect(4)]) || ...
+        lineIntersectsLine(p1, p2, rect(1:2) + [rect(3), 0], rect(1:2) + rect(3:4)) || ...
+        lineIntersectsLine(p1, p2, rect(1:2) + [0, rect(4)], rect(1:2) + rect(3:4));
+end
+
+function intersects = lineIntersectsLine(p1, p2, q1, q2)
+    % Check if the line segment from p1 to p2 intersects the line segment from q1 to q2
+    d = (q2(2) - q1(2)) * (p2(1) - p1(1)) - (q2(1) - q1(1)) * (p2(2) - p1(2));
+    if d == 0
+        intersects = false;
+        return;
+    end
+    ua = ((q2(1) - q1(1)) * (p1(2) - q1(2)) - (q2(2) - q1(2)) * (p1(1) - q1(1))) / d;
+    ub = ((p2(1) - p1(1)) * (p1(2) - q1(2)) - (p2(2) - p1(2)) * (p1(1) - q1(1))) / d;
+    intersects = (ua >= 0 && ua <= 1) && (ub >= 0 && ub <= 1);
 end
 
 function neighbors = findNeighbors(nodes, point, radius)
