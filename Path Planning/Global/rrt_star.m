@@ -62,6 +62,9 @@ function RRTstar
             plot(new_point(1), new_point(2), 'bo');
         end
 
+        % Update the plot
+        drawnow;
+
         % Check if goal is reached
         if norm(new_point - goal) <= goal_radius
             disp('Goal reached!');
