@@ -68,12 +68,14 @@ for i = 1:max_iter
                 new_node_start = struct('pos', new_point_start, 'parent', idx_start, 'cost', tree_start(idx_start).cost + dist(tree_start(idx_start).pos, new_point_start));
                 tree_start(end + 1) = new_node_start;
                 plot([tree_start(idx_start).pos(1), new_point_start(1)], [tree_start(idx_start).pos(2), new_point_start(2)], 'b');
+                drawnow;
             end
             
             if within_radius(tree_goal(idx_goal).pos, new_point_goal, step_size)
                 new_node_goal = struct('pos', new_point_goal, 'parent', idx_goal, 'cost', tree_goal(idx_goal).cost + dist(tree_goal(idx_goal).pos, new_point_goal));
                 tree_goal(end + 1) = new_node_goal;
                 plot([tree_goal(idx_goal).pos(1), new_point_goal(1)], [tree_goal(idx_goal).pos(2), new_point_goal(2)], 'r');
+                drawnow;
             end
             
             % Check for connection
@@ -98,6 +100,9 @@ for i = 1:max_iter
                 
                 path = [path_start; flipud(path_goal)];
                 plot(path(:,1), path(:,2), 'g', 'LineWidth', 2);
+                drawnow;
+
+                pause(0.05);
                 
                 break;
             end
