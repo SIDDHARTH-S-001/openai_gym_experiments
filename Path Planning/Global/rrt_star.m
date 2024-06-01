@@ -62,6 +62,9 @@ function RRTstar
             plot(new_point(1), new_point(2), 'bo');
         end
 
+        % Display iteration number
+        title(['Iteration: ', num2str(i)]);
+
         % Update the plot
         drawnow;
 
