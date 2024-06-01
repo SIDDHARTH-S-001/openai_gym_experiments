@@ -14,6 +14,7 @@ max_iter = 500;
 x_lim = [0, 100];
 y_lim = [0, 100];
 radius = 10;
+delay_time = 0.05; % delay time in seconds
 
 % Obstacle parameters
 num_obstacles = 10;
@@ -45,6 +46,9 @@ end
 
 % Main loop
 for i = 1:max_iter
+    % Display iteration number
+    title(['Iteration: ', num2str(i)]);
+    
     % Random sampling
     if rand < goal_sample_rate
         rand_point = goal;
@@ -101,13 +105,14 @@ for i = 1:max_iter
                 path = [path_start; flipud(path_goal)];
                 plot(path(:,1), path(:,2), 'g', 'LineWidth', 2);
                 drawnow;
-
-                pause(0.05);
                 
                 break;
             end
         end
     end
+    
+    % Add a delay between iterations
+    pause(delay_time);
 end
 
 if i == max_iter
