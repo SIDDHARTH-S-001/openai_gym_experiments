@@ -73,7 +73,7 @@ function qrrt_star
                 near_idx = near_indices(j);
                 if near_idx <= length(tree.costs)
                     cost = tree.costs(near_idx) + distance(tree.vertices(near_idx, :), new_vertex);
-                    if cost < min_cost
+                    if cost < min_cost && ~in_collision(tree.vertices(near_idx, :), new_vertex, obstacles)
                         min_cost = cost;
                         best_near_idx = near_idx;
                     end
@@ -89,7 +89,7 @@ function qrrt_star
                 near_idx = near_indices(j);
                 if near_idx <= length(tree.costs)
                     cost = min_cost + distance(tree.vertices(near_idx, :), new_vertex);
-                    if cost < tree.costs(near_idx)
+                    if cost < tree.costs(near_idx) && ~in_collision(tree.vertices(near_idx, :), new_vertex, obstacles)
                         % Update edge
                         tree.edges(tree.edges(:,2) == near_idx, :) = [];
                         tree.edges = [tree.edges; new_idx, near_idx];
