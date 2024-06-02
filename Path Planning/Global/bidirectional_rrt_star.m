@@ -8,17 +8,18 @@ close all;
 % Parameters
 start = [10, 10];
 goal = [90, 90];
-step_size = 5;
+step_size = 2;
 goal_sample_rate = 0.05;
 max_iter = 500;
 x_lim = [0, 100];
 y_lim = [0, 100];
-radius = 10;
+radius = 5;
 delay_time = 0.05; % delay time in seconds
 
 % Obstacle parameters
-num_obstacles = 10;
-obstacle_radius = 5;
+num_obstacles = 20;
+obstacle_width = 10;
+obstacle_height = 5;
 
 % Node structure
 node_start = struct('pos', start, 'parent', [], 'cost', 0);
@@ -37,22 +38,26 @@ plot(start(1), start(2), 'go', 'MarkerSize', 10, 'MarkerFaceColor', 'g');
 plot(goal(1), goal(2), 'ro', 'MarkerSize', 10, 'MarkerFaceColor', 'r');
 
 % Generate obstacles
-obstacles = struct('center', {}, 'radius', {});
+obstacles = struct('center', {}, 'width', {}, 'height', {});
 for i = 1:num_obstacles
     obstacle_valid = false;
     while ~obstacle_valid
         new_obstacle_center = [rand * (x_lim(2) - x_lim(1)), rand * (y_lim(2) - y_lim(1))];
-        % Check if the new obstacle is not too close to existing obstacles
-        if ~any(arrayfun(@(obs) dist(new_obstacle_center, obs.center) <= 2 * obstacle_radius, obstacles))
+        % Check if the new obstacle is not too close to start, goal, or existing obstacles
+        if dist(new_obstacle_center, start) > 2 * max(obstacle_width, obstacle_height) && ...
+           dist(new_obstacle_center, goal) > 2 * max(obstacle_width, obstacle_height) && ...
+           ~any(arrayfun(@(obs) dist(new_obstacle_center, obs.center) <= 2 * max(obstacle_width, obstacle_height), obstacles))
             obstacles(i).center = new_obstacle_center;
-            obstacles(i).radius = obstacle_radius;
-            viscircles(obstacles(i).center, obstacles(i).radius, 'EdgeColor', 'k');
+            obstacles(i).width = obstacle_width;
+            obstacles(i).height = obstacle_height;
+            rectangle('Position', [obstacles(i).center(1) - obstacle_width / 2, obstacles(i).center(2) - obstacle_height / 2, obstacle_width, obstacle_height], 'EdgeColor', 'k', 'FaceColor', 'k');
             obstacle_valid = true;
         end
     end
 end
 
 % Main loop
+path_found = false;
 for iter = 1:max_iter
     % Display iteration number
     title(['Iteration: ', num2str(iter)]);
@@ -75,54 +80,61 @@ for iter = 1:max_iter
     idx_start = nearest(tree_start, rand_point);
     new_point_start = steer(tree_start(idx_start).pos, rand_point, step_size);
     
-    % Check for collisions with obstacles
     if ~in_collision(new_point_start, obstacles)
-        % Extend goal tree
-        idx_goal = nearest(tree_goal, new_point_start);
-        new_point_goal = steer(tree_goal(idx_goal).pos, new_point_start, step_size);
-        
-        if ~in_collision(new_point_goal, obstacles)
-            % Add new nodes to trees
-            if within_radius(tree_start(idx_start).pos, new_point_start, step_size)
-                new_node_start = struct('pos', new_point_start, 'parent', idx_start, 'cost', tree_start(idx_start).cost + dist(tree_start(idx_start).pos, new_point_start));
-                tree_start(end + 1) = new_node_start;
+        if within_radius(tree_start(idx_start).pos, new_point_start, step_size)
+            new_node_start = struct('pos', new_point_start, 'parent', idx_start, 'cost', tree_start(idx_start).cost + dist(tree_start(idx_start).pos, new_point_start));
+            tree_start(end + 1) = new_node_start;
+            if ~path_found
                 plot([tree_start(idx_start).pos(1), new_point_start(1)], [tree_start(idx_start).pos(2), new_point_start(2)], 'b');
                 drawnow;
             end
-            
-            if within_radius(tree_goal(idx_goal).pos, new_point_goal, step_size)
-                new_node_goal = struct('pos', new_point_goal, 'parent', idx_goal, 'cost', tree_goal(idx_goal).cost + dist(tree_goal(idx_goal).pos, new_point_goal));
-                tree_goal(end + 1) = new_node_goal;
+        end
+    end
+    
+    % Extend goal tree
+    idx_goal = nearest(tree_goal, rand_point);
+    new_point_goal = steer(tree_goal(idx_goal).pos, rand_point, step_size);
+    
+    if ~in_collision(new_point_goal, obstacles)
+        if within_radius(tree_goal(idx_goal).pos, new_point_goal, step_size)
+            new_node_goal = struct('pos', new_point_goal, 'parent', idx_goal, 'cost', tree_goal(idx_goal).cost + dist(tree_goal(idx_goal).pos, new_point_goal));
+            tree_goal(end + 1) = new_node_goal;
+            if ~path_found
                 plot([tree_goal(idx_goal).pos(1), new_point_goal(1)], [tree_goal(idx_goal).pos(2), new_point_goal(2)], 'r');
                 drawnow;
             end
-            
-            % Check for connection
-            if within_radius(new_point_start, new_point_goal, step_size)
-                disp('Path found!');
-                
-                % Trace path from start to goal
-                path_start = [new_point_start];
-                path_goal = [new_point_goal];
-                
-                idx = length(tree_start);
-                while ~isempty(tree_start(idx).parent)
-                    path_start = [tree_start(idx).pos; path_start];
-                    idx = tree_start(idx).parent;
-                end
-                
-                idx = length(tree_goal);
-                while ~isempty(tree_goal(idx).parent)
-                    path_goal = [path_goal; tree_goal(idx).pos];
-                    idx = tree_goal(idx).parent;
-                end
-                
-                path = [path_start; flipud(path_goal)];
-                plot(path(:,1), path(:,2), 'g', 'LineWidth', 2);
-                drawnow;
-                
-                break;
+        end
+    end
+    
+    % Check for connection
+    if ~isempty(tree_start) && ~isempty(tree_goal)
+        idx_start_new = nearest(tree_start, new_point_goal);
+        idx_goal_new = nearest(tree_goal, new_point_start);
+        if within_radius(tree_start(idx_start_new).pos, tree_goal(idx_goal_new).pos, step_size)
+            disp('Path found!');
+            path_found = true;
+
+            % Trace path from start to goal
+            path_start = [tree_start(idx_start_new).pos];
+            path_goal = [tree_goal(idx_goal_new).pos];
+
+            idx = idx_start_new;
+            while ~isempty(tree_start(idx).parent)
+                path_start = [tree_start(idx).pos; path_start];
+                idx = tree_start(idx).parent;
             end
+
+            idx = idx_goal_new;
+            while ~isempty(tree_goal(idx).parent)
+                path_goal = [path_goal; tree_goal(idx).pos];
+                idx = tree_goal(idx).parent;
+            end
+
+            path = [path_start; flipud(path_goal)];
+            plot(path(:,1), path(:,2), 'g', 'LineWidth', 2);
+            drawnow;
+
+            break;
         end
     end
     
@@ -130,7 +142,7 @@ for iter = 1:max_iter
     pause(delay_time);
 end
 
-if iter == max_iter
+if ~path_found
     disp('Max iterations reached. Path not found.');
 end
 
@@ -164,5 +176,11 @@ end
 
 % Function to check if a point is in collision with any obstacles
 function result = in_collision(point, obstacles)
-    result = any(arrayfun(@(obstacle) dist(point, obstacle.center) <= obstacle.radius, obstacles));
+    result = any(arrayfun(@(obstacle) in_rectangle(point, obstacle.center, obstacle.width, obstacle.height), obstacles));
+end
+
+% Function to check if a point is inside a rectangle
+function result = in_rectangle(point, center, width, height)
+    result = point(1) >= center(1) - width / 2 && point(1) <= center(1) + width / 2 && ...
+             point(2) >= center(2) - height / 2 && point(2) <= center(2) + height / 2;
 end

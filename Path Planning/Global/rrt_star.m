@@ -2,9 +2,10 @@ function RRTstar
     % Parameters
     start = [10, 10];
     goal = [90, 90];
+    % map limits
     x_max = 100;
     y_max = 100;
-    max_iter = 1000;
+    max_iter = 1000; % iteration limit for planner
     step_size = 2;
     goal_radius = 5;
     search_radius = 10;
@@ -18,7 +19,7 @@ function RRTstar
     tree.nodes = start;
     tree.cost = 0;
     tree.parent = 0;
-
+    % figure parameters
     figure;
     hold on;
     xlim([0, x_max]);
@@ -28,7 +29,7 @@ function RRTstar
 
     % Plot obstacles
     for i = 1:num_obstacles
-        rectangle('Position', obstacles(i, :), 'FaceColor', [0, 0, 0]);
+        rectangle('Position', obstacles(i, :), 'FaceColor', [0, 0, 0]); % 0, 0, 0 face color rep black
     end
 
     for i = 1:max_iter
@@ -38,7 +39,7 @@ function RRTstar
         % Find nearest node in the tree
         [nearest_node, nearest_idx] = nearestNode(tree.nodes, rand_point);
 
-        % Steer towards the random point
+        % Steer towards the random point, syntax: steer(from, to, step_size)
         new_point = steer(nearest_node, rand_point, step_size);
 
         % Check if the new point is within the search radius and closer to the goal
@@ -80,6 +81,7 @@ function RRTstar
 end
 
 function obstacles = generateObstacles(num_obstacles, obstacle_size, x_max, y_max)
+    % repmat function is used to replicate tile arrays
     obstacles = rand(num_obstacles, 2) .* (repmat([x_max, y_max] - obstacle_size, num_obstacles, 1));
     obstacles = [obstacles, repmat([obstacle_size, obstacle_size], num_obstacles, 1)];
 end
