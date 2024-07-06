@@ -26,17 +26,16 @@ den2 = [1 4 5 6 3];
 sys2 = tf(num2, den2);
 %% Worked out example (manual and then software generated plot)
 p = [0, -1, -5];
-gain = 1;
-sys3 = zpk([], p, gain);
-
 % open loop poles at 0, -1 and -5 and doesnt have any open loop zeros,
 % hence P > Z. and since P = 3, no of root locus branches = 3
 % centroid of asymptotes is at -2
 % angle of asymptotes are 60, 180 and 300 degrees, because of which 2 root locus branches will meet jw axis
-% By using the Routh array method and special case(ii), the root locus branches intersects the imaginary axis at -j√5  and +j√5
-% Break away point on s = -0.473
+% By using the Routh array method and special case(ii), the root locus  branches intersects the imaginary axis at -j√5  and −j√5
+.
 
-rlocus(sys3)
+gain = 1;
+sys3 = zpk([], p, gain);
+
 
 
 
