@@ -1,3 +1,6 @@
+%% Resources
+% https://www.youtube.com/playlist?list=PLUMWjy5jgHK3-ca6GP6PL0AgcNGHqn33f (Brian Douglas Playlist on Root Locus)
+% https://www.tutorialspoint.com/control_systems/control_systems_construction_root_locus.htm
 %% Basic Root Locus Plot
 num = [2 5 1];
 den = [1 2 3];
