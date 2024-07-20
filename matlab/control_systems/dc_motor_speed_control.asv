@@ -1,0 +1,17 @@
+%% Mathematical Model of DC motor
+syms K theta_dot V Ia J L R b s
+s = tf('s'); % s has been taken as a continuous-time transfer function variable
+% Input -> V
+% Output -> theta_dot (angular velocity of shaft)
+% Magnetic field is assumed to be constant, so torque will be proportional to armature current Ia.
+% T = Kt * Ia;
+% back emf (e) proportional to angular velocity of shaft (theta_dot) 
+% e = Kv * theta_dot;
+% In SI Units, Kt = Kv, so its taken as K uniformly.
+
+% Transfer function model (theta_dot / V) in laplace domain
+num = K;
+den = (J*s + b)*(L*s + R) + (K*K);
+
+TF = num / den
+
