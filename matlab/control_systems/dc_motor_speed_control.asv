@@ -87,7 +87,30 @@ title('step response with proportional control')
 
 % Note:
 % Increasing Kp reducing Ess but increases overshoot
-controlSystemDesigner(TF) % create new step response plot and edit architecture to 
+controlSystemDesigner(TF) % create new step response plot and select PID tuning from the tuning methods menu for compensator tuning
+
+%% PID Control Continuation
+% Adding an integral term will eliminate the steady-state error to a step reference and a derivative term will often reduce the overshoot. 
+
+Kp = 75;
+Ki = 1;
+Kd = 1;
+C = pid(Kp, Ki, Kd);
+sys_cl = feedback(C*TF, 1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

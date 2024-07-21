@@ -87,7 +87,53 @@ title('step response with proportional control')
 
 % Note:
 % Increasing Kp reducing Ess but increases overshoot
-controlSystemDesigner(TF) % create new step response plot and select PID tuning from the tuning methods menu
+controlSystemDesigner(TF) % create new step response plot and select PID tuning from the tuning methods menu for compensator tuning
+
+%% PID Control Continuation
+% Adding an integral term will eliminate the steady-state error to a step reference and a derivative term will often reduce the overshoot. 
+
+Kp = 100;
+Ki = 200;
+Kd = 10;
+C = pid(Kp, Ki, Kd);
+sys_cl = feedback(C*TF, 1);
+t = 0:0.1:200;
+step(sys_cl, t);
+title('PID Control with Small Ki and Small Kd')
+
+% observations: (Kp:75, Ki:1 and Kd:1)
+% rise time = 0.172s
+% settling time = 150s (way too high !!!)
+% steady state value = 1 (Ess = 0)
+% peak amplitude = 0.998 (approx 0% overshoot)
+
+% observations: (Kp:100, Ki:100 and Kd:1)
+% rise time = 0.129s
+% settling time = 0.586s 
+% steady state value = 1 (Ess = 0)
+% peak overshoot = 19.4% (Too high)
+
+% observations: (Kp:100, Ki:100 and Kd:10) -> Best set of parameters for the design requirement
+% rise time = 0.144s
+% settling time = 0.269s 
+% steady state value = 1 (Ess = 0)
+% peak overshoot = 1.03% (fits requirement)
+
+% Inference
+% Increasing Kp reduces steady state error
+% Increasing Ki improves response and reduces settling time
+% Increasing Kd reduces overshoot
+
+
+
+
+
+
+
+
+
+
+
 
 
 
