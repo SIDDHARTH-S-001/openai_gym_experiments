@@ -124,14 +124,32 @@ title('PID Control with Small Ki and Small Kd')
 % Increasing Ki improves response and reduces settling time
 % Increasing Kd reduces overshoot
 
+%% Root Locus
+% Requirements
+% For a 1-rad/sec step reference, the design criteria are the following.
+% 
+% Settling time less than 2 seconds
+% Overshoot less than 5%
+% Steady-state error less than 1%
 
+controlSystemDesigner('rlocus', TF)
 
+% desired regions can be added to the root locus plot by right-clicking on the plot and choosing Design Requirements > New
+% after setting the req for settling time and peak overshoot, The resulting desired region for the closed-loop poles is shown by the unshaded region of the above figure. 
+% More specifically, the two rays centered at the origin represent the overshoot requirement; the smaller the angle these rays make with the negative real-axis, the less overshoot is allowed. The vertical line at s = -2 represents the settling time requirement, 
+% where the farther to left the closed-loop poles are located the smaller the settling time is.
 
+% since the closed-loop system has two poles with no zeros, placing the closed-loop poles in the shown region will guarantee satisfaction of our transient response requirements.
 
+% observations for this case, poles at -6 +-2i
+% gain = 10 (approx)
+% overshoot = 0%
+% settling time = 0.83s
+% steady state value = 0.5
+% although it satisfies requirement, the steady state value is not 1 yet
 
-
-
-
+% Note: Increasing system gain by moving poles vertically upward will lead to large overshoot, 
+% so a way around is to use a lag compensator
 
 
 
