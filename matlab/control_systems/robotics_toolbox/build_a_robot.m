@@ -40,7 +40,7 @@ tform5 = trvec2tform([0.5, 0, 0]); % User defined
 setFixedTransform(bodyEndEffector.Joint,tform5);
 addBody(robot,bodyEndEffector,'body4');
 
-config = randomConfiguration(robot) % sets the robot to a random configuration
+config = randomConfiguration(robot) % sets the robot (rigid body tree) to a random configuration
 tform = getTransform(robot,config,'endeffector','base') % gets transformation b/w two body frames
 show(robot)
 
