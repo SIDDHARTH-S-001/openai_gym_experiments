@@ -141,16 +141,21 @@ controlSystemDesigner('rlocus', TF)
 
 % since the closed-loop system has two poles with no zeros, placing the closed-loop poles in the shown region will guarantee satisfaction of our transient response requirements.
 
-observations for this case, poles at -6 +-2i
-gain = 10 (approx)
-overshoot = 0
-steady state value = 0.5
-settling time = 0.83s
-although it satisfi
+% observations for this case, poles at -6 +-2i
+% gain = 10 (approx)
+% overshoot = 0%
+% settling time = 0.83s
+% steady state value = 0.5
+% although it satisfies requirement, the steady state value is not 1 yet
 
+% Note: Increasing system gain by moving poles vertically upward will lead
+% to large overshoot, infact moving them into the shaded region will not satisfy the requirements anymore, 
+% but even moving just before the limits,the steady state value saturates to around 0.72 although the peak value has a overshoot of about 5% max
+% so a way around is to use a lag compensator. 
 
-
-
+%% Lag compensator based on Root Locus
+% click on the Preferences menu at the top of the Control System Designer window. Then From the Options tab, select a Zero/pole/gain parameterization as shown below.
+observations: lag compensator for
 
 
 

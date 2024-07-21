@@ -148,13 +148,36 @@ controlSystemDesigner('rlocus', TF)
 % steady state value = 0.5
 % although it satisfies requirement, the steady state value is not 1 yet
 
-% Note: Increasing system gain by moving poles vertically upward will lead to large overshoot, 
-% so a way around is to use a lag compensator
+% Note: Increasing system gain by moving poles vertically upward will lead
+% to large overshoot, infact moving them into the shaded region will not satisfy the requirements anymore, 
+% but even moving just before the limits,the steady state value saturates to around 0.72 although the peak value has a overshoot of about 5% max
+% so a way around is to use a lag compensator. 
 
+% click on the Preferences menu at the top of the Control System Designer window. Then From the Options tab, select a Zero/pole/gain parameterization as shown below.
+% observations: lag compensator for zero at 1 and pole at 0.01
+% max phase lag = 78 degrees (approx)
+% gain = 20 (poles are moved to place with this gain)
+% overshoot = 0%
+% steady state value = 0.995 (almost 1 so requirement can be considered satisfied)
+% settling time = 3.27s (requirement not met)
 
+% the response is not quite satisfactory even though two of the closed-loop poles were placed in the desired region. 
+% The reason for this is because the closed-loop system no longer has the form of a canonical second-order system. 
+% Specifically, there is a third pole on the real axis indicated in the root locus plot above that is outside of the desired region. 
+% The fact that this third pole is to the right of the two conjugate poles placed above means that it will slow the system response down, that is why the settling time requirement is no longer met. 
+% Additionally, the overshoot requirement is met easily even though the two conjugate poles are near the edge of the allowed region. 
+% This is due again to the third pole which is well damped and tends to dominate the response because it is "slower" than the other poles. 
+% What this means is that we can further increase the loop gain to improve system response (reducing settling time) such that the conjugate poles move beyond the diagonal lines while still meeting the overshoot requirement.
 
+% observations: lag compensator for zero at 1 and pole at 0.01 (open loop poles pushed further vertically)
+% max phase lag = 78 degrees (approx)
+% gain = 43 (poles are moved to place with this gain)
+% overshoot = 2.33% (requirement met)
+% steady state value = 0.998 (almost 1 so requirement can be considered satisfied)
+% settling time = 1.94s (requirement met successfully)
 
-
+% If we had not been able to get a satisfactory response by tuning the loop gain,
+% we could have tried moving the pole and zero of the lag compensator or we could have tried a different type of dynamic compensator (additional poles and/or zeros)
 
 
 
