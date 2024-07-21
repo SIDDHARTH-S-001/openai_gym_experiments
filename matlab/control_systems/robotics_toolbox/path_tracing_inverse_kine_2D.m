@@ -34,5 +34,73 @@ addBody(robot, body, 'link2');
 
 showdetails(robot)
 
+% Define the Trajectory (Circle to be traced over in 10 secs)
+t = (0:0.2:10)'; % Time
+count = length(t);
+center = [0.3 0.1 0];
+radius = 0.15;
+theta = t*(2*pi/t(end));
+points = center + radius*[cos(theta) sin(theta) zeros(size(theta))];
+
+% Inverse Kinematics Solution
+% pre-allocate config solutions as a matrix qs
+q0 = homeConfiguration(robot);
+ndof = length(q0);
+qs = zeros(count, ndof);
+
+% Create Kinematic solver
+ik = inverseKinematics('RigidBodyTree', robot);
+% since only the xy Cartesian points are the only important factors of the end-effector pose for this workflow, 
+% specify a non-zero weight for the fourth and fifth elements of the weight vector. All other elements are set to zero.
+weights = [0, 0, 0, 1, 1, 0];
+end_effector = 'tool';
+
+% Loop through the trajectory of points to trace the circle.
+qInit = q0; % use home config as initial guess
+for i = 1:count
+    % solve for config satisfying end-effector position
+    point = points(i, :);
+    % Call the ik object for each point to generate the joint configuration that achieves the end-effector position. 
+    qsol = ik(end_effector, trvec2tform(point), weights, qInit);
+    % Store the configuration
+    qs(i, :) = qsol;
+    % Start from prior solution
+    qInit = qsol;
+end
+
+% Animate the solution
+figure
+show(robot, qs(1,:)');
+view(2)
+ax = gca;
+ax.Projection = 'orthographic';
+hold on
+plot(points(:,1),points(:,2),'k')
+axis([-0.1 0.7 -0.3 0.5])
+
+% Set up a rateControl object to display the robot trajectory at a fixed rate of 15 frames per second. 
+framesPerSecond = 15;
+r = rateControl(framesPerSecond);
+for i = 1:count
+    show(robot,qs(i,:)','PreservePlot',false);
+    drawnow
+    waitfor(r);
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
