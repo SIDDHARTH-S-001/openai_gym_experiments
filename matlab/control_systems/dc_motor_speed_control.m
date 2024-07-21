@@ -61,3 +61,37 @@ linearSystemAnalyzer('step', TF, rP_motor, 0:0.1:10)
 
 % use lsim command or Linear simulation plot in linearSystemAnalyzer to study system response to various inputs.
 lsim(SS, rP_motor)
+
+%% PID Control
+% For a 1-rad/sec step reference, the design criteria are the following. 
+% Settling time less than 2 seconds
+% Overshoot less than 5%
+% Steady-state error less than 1%
+
+Kp = 100;
+C = pid(Kp);
+sys_cl = feedback(C*TF, 1); % feedback(sys1,sys2) returns a model object sys for the negative feedback interconnection of model objects sys1,sys2.
+
+
+% analyzing step response of closed loop system
+t = 0:0.1:5;
+step(sys_cl, t)
+grid
+title('step response with proportional control')
+
+% observations
+% rise time = 0.13s
+% settling time = 0.57s
+% max peak overshoot = 21.9% (Too High)
+% steady state value = 0.909 (approx 0.1 Ess -> Too High)
+
+% Note:
+% Increasing Kp reducing Ess but increases overshoot
+controlSystemDesigner(TF) % create new step response plot and select PID tuning from the tuning methods menu
+
+
+
+
+
+
+
