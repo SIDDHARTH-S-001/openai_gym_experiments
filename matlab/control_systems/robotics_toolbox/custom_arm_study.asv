@@ -8,7 +8,7 @@ dhParams = [0  0 0 0;
             l2 0 0 0];
 
 % create a rigid body tree
-robot = rigidBodyTree('DataFormat','column','MaxNumBodies',3);
+robot = rigidBodyTree;
 
 % Create a cell array for the rigid body object, and another for the joint objects
 bodies = cell(3,1);
@@ -29,17 +29,17 @@ for i = 1:3
     end
 end
 
-% showdetails(robot)
+showdetails(robot)
 
 % figure(Name="3R Robot Interactive GUI")
-% gui = interactiveRigidBodyTree(robot,MarkerScaleFactor=0.5);
+gui = interactiveRigidBodyTree(robot,MarkerScaleFactor=0.5);
 
 %% Kinematics
 
 t = (0:0.2:10)'; % Time
 count = length(t);
-center = [0.5 0.1 0];
-radius = 0.2;
+center = [0.3 0.1 0];
+radius = 0.15;
 theta = t*(2*pi/t(end));
 points = center + radius*[cos(theta) sin(theta) zeros(size(theta))];
 
@@ -52,57 +52,5 @@ qs = zeros(count, ndof);
 % specify a non-zero weight for the fourth and fifth elements of the weight vector. 
 % All other elements are set to zero.
 ik = inverseKinematics('RigidBodyTree', robot);
-% Weight for pose tolerances, specified as a six-element vector. 
-% The first three elements correspond to the weights on the error in orientation for the desired pose. 
-% The last three elements correspond to the weights on the error in xyz position for the desired pose.
 weights = [0, 0, 0, 1, 1, 0];
-endEffector = 'body3';
-
-% Loop through the trajectory of points to trace the circle
-qInitial = q0; % Use home configuration as the initial guess
-for i = 1:count
-    % Solve for the configuration satisfying the desired end effector
-    % position
-    point = points(i,:);
-    qSol = ik(endEffector,trvec2tform(point),weights,qInitial);
-    % Store the configuration
-    qs(i,:) = qSol;
-    % Start from prior solution
-    qInitial = qSol;
-end
-
-figure
-show(robot,qs(1,:)');
-view(2)
-ax = gca;
-ax.Projection = 'orthographic';
-hold on
-plot(points(:,1),points(:,2),'k')
-axis([-0.1 0.7 -0.3 0.5])
-
-framesPerSecond = 15;
-r = rateControl(framesPerSecond);
-for i = 1:count
-    show(robot,qs(i,:)','PreservePlot',false);
-    drawnow
-    waitfor(r);
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+endEffector = 'tool';
