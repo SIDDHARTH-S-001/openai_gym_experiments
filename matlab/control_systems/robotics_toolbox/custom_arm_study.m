@@ -29,10 +29,18 @@ for i = 1:3
     end
 end
 
-% showdetails(robot)
+showdetails(robot)
 
 % figure(Name="3R Robot Interactive GUI")
-% gui = interactiveRigidBodyTree(robot,MarkerScaleFactor=0.5);
+gui = interactiveRigidBodyTree(robot,MarkerScaleFactor=0.5);
+
+% Add a text object for displaying coordinates and joint angles
+coordText = text(0, 0, 0, '', 'FontSize', 12, 'BackgroundColor', 'w', 'Margin', 2);
+
+% Create and start a timer to periodically update the display
+updateTimer = timer('ExecutionMode', 'fixedRate', 'Period', 0.1, ...
+                    'TimerFcn', @(~,~) updateDisplay(robot, gui, coordText));
+start(updateTimer);
 
 %% Kinematics
 
@@ -90,11 +98,21 @@ end
 
 
 
+%% Function definition
+function updateDisplay(robot, gui, coordText)
+    % Get the current configuration from the GUI
+    config = gui.Configuration;
+    
+    % Calculate forward kinematics to get the end-effector position
+    eeTform = getTransform(robot, config, 'body3');
+    eePos = tform2trvec(eeTform);
 
-
-
-
-
+    % Update the text display with the coordinates and joint angles
+    angles = rad2deg(config);
+    textString = sprintf('Position: [%.2f, %.2f, %.2f]\nJoint Angles: [%.2f, %.2f, %.2f]', eePos, angles);
+    coordText.Position = eePos + [0 0 0.1]; % Slightly offset the text position
+    coordText.String = textString;
+end
 
 
 
