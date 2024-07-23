@@ -99,6 +99,7 @@ end
 
 
 %% Function definition
+% This fuunction is to display the eef pos and joint angles on the 3D plot
 function updateDisplay(robot, gui, coordText)
     % Get the current configuration from the GUI
     config = gui.Configuration;
