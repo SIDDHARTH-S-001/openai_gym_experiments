@@ -72,6 +72,22 @@ theta_dot = [theta1_dot, theta2_dot, theta3_dot]';
 v_base = J_base * theta_dot; % end-effector's velocity as seen from the base (or world) frame.
 v_ee = J_ee * theta_dot; % end-effector's velocity as seen from the end-effector's own perspective.
 
+% In a serial manipulator, angular velocity propagates from the base to the end-effector, with each joint contributing to the overall angular velocity of the subsequent links. 
+% This progression follows a recursive pattern. ω_i = ω_(i-1) + θ̇_i * z_i
+
+z1 = [0 0 1];
+z2 = [0 0 1];
+z3 = [0 0 1];
+
+w0 = [0 0 0]; % Angular Velocity of base link
+w1 = w0 + theta_dot(1)*z1; % Angular Velocity of link 1
+w2 = w1 + theta_dot(2)*z2; % Angular Velocity of link 2
+w3 = w2 + theta_dot(3)*z3; % Angular Velocity of link 3
+
+% The angular velocity propagation directly affects the rotational part of the Jacobian matrix.
+
+
+
 
 
 
