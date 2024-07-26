@@ -1,7 +1,7 @@
 %% Velocity Kinematics 3R robot
 
 % Define symbolic variables
-syms theta1 theta2 theta3 l1 l2 l3 real
+syms theta1 theta2 theta3 theta1_dot theta2_dot theta3_dot l1 l2 l3 real
 
 % DH parameters
 % Example DH table [a, alpha, d, theta]
@@ -43,7 +43,7 @@ T = T_matrices{1}*T_matrices{2}*T_matrices{3}*T_matrices{4};
 
 P = T(1:3, 4); % Position of End-Effector
 
-J = jacobian(P, [theta1, theta2, theta3]); % Jacobian Matrix from the base frame
+J = jacobian(P, [theta1, theta2, theta3]); % Jacobian Matrix 
 
 % The Jacobian matrix relates joint velocities to end-effector velocities. Its frame of reference determines how these velocities are expressed. 
 % There are primarily two types of Jacobians:
@@ -60,6 +60,18 @@ J = jacobian(P, [theta1, theta2, theta3]); % Jacobian Matrix from the base frame
 % d) Computational efficiency: Some frames might lead to simpler expressions.
 % Base frame (world coordinates): Useful for global path planning and obstacle avoidance.
 % End-effector frame: Beneficial for tasks defined relative to the end-effector, like tool use.
+
+J_base = J; % Jacobian Matrix expressed in base frame
+
+R_base_to_ee = T(1:3, 1:3);
+
+J_ee = R_base_to_ee * J_base; % Jacobian Matrix expressed in end-effector frame
+
+theta_dot = [theta1_dot, theta2_dot, theta3_dot]';
+
+v_base = J_base * theta_dot; % end-effector's velocity as seen from the base (or world) frame.
+v_ee = J_ee * theta_dot; % end-effector's velocity as seen from the end-effector's own perspective.
+
 
 
 
