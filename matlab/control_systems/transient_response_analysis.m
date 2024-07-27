@@ -206,8 +206,21 @@ ylabel('Unit-Ramp Input and System Output')
 text(6.3,4.6,'Unit-Ramp Input')
 text(4.75,9.0,'Output')
 
+%% Q10 - Arbitrary input continuation
+A = [-1 5;
+     -1 0];
+B = [0;
+     1];
+C = [1 0];
+D = 0;
 
+sys = ss(A, B, C, D);
+step(sys);
 
+t = 0:0.1:10;
+r = exp(-t);
+z = lsim(sys, r, t);
+plot(t, r, '-', t, y, 'o')
 
 
 
