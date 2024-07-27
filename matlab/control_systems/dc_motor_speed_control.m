@@ -179,6 +179,7 @@ controlSystemDesigner('rlocus', TF)
 % If we had not been able to get a satisfactory response by tuning the loop gain,
 % we could have tried moving the pole and zero of the lag compensator or we could have tried a different type of dynamic compensator (additional poles and/or zeros)
 
+%% Frequency domain methods for controller design
 
 
 
