@@ -139,8 +139,30 @@ step(num1, den1);
 grid
 title('Unit step response of sG(s)')
 
+%% Q7 - Obtain ramp response
+% Matlab doesnt have unit ramp response, so divide G(s) by s and use step reponse.
 
+num = [2 1];
+den = [1 1 1];
 
+% dividing system TF by s, now system is G(s)/s
+num1 = [2 1];
+den1 = [1 1 1 0];
+t = 0:0.1:10;
+
+% step(num1, den1); % step response of G(s)/s is same as ramp response of G(s)
+c = step(num1, den1, t);
+% In plotting the ramp-response curve, add the reference
+% input to the plot. The reference input is t. Add to the
+% argument of the plot command with the following: t,t,'-'. Thus
+% the plot command becomes as follows: plot(t,c,'o',t,t,'-')
+
+plot(t,c,'o',t,t,'-')
+
+grid
+title('Unit ramp response of G(s)')
+xlabel('t Sec')
+ylabel('Input and Output')
 
 
 
