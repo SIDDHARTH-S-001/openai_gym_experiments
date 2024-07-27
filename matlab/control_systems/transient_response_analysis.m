@@ -222,8 +222,57 @@ r = exp(-t);
 z = lsim(sys, r, t);
 plot(t, r, '-', t, y, 'o')
 
+%% Q11 - Response to initial condition (part 1)
+% Ogata Example 5.8 -> spring mass damper system with non-zero initial conditions
+% when initial conditions are given, include them while taking laplace transform for TF
+num = [0.1 0.35 0];
+den = [1 3 2];
+sys = tf(num, den);
+step(sys)
 
+%% Q12 - Response to initial condition (part 2)
+t = 0:0.01:3;
+A = [0 1;-10 -5];
+B = [2;1];
+[x,z,t] = step(A,B,A,B,1,t);
+x1 = [1 0]*x';
+x2 = [0 1]*x';
+plot(t,x1,'x',t,x2,'-')
+grid
+title('Response to Initial Condition')
+xlabel('t Sec')
+ylabel('State Variables x1 and x2')
+gtext('x1')
+gtext('x2')
 
+%% Q13 - Response to initial condition (part 3)
+t = 0:0.05:3;
+A = [0 1;-10 -5];
+B = [0;0];
+C = [0 0];
+D = 0;
+init = [2; 1];
+[y,x] = initial(A,B,C,D,init,t);
+x1 = [1 0]*x';
+x2 = [0 1]*x';
+plot(t,x1,'o',t,x1,t,x2,'x',t,x2)
+grid
+title('Response to Initial Condition')
+xlabel('t Sec')
+ylabel('State Variables x1 and x2')
+gtext('x1')
+gtext('x2')
 
-
+%% Q14 - Response to initial condition (part 4)
+t = 0:0.05:10;
+A = [0 1 0;0 0 1;-10 -17 -8];
+B = [0;0;0];
+C = [1 0 0];
+D = [0];
+y = initial(A,B,C,D,[2;1;0.5],t);
+plot(t,y)
+grid
+title('Response to Initial Condition')
+xlabel('t (sec)')
+ylabel('Output y')
 
