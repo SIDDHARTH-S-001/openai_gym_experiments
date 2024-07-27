@@ -43,4 +43,22 @@ text(2.8,1.1,'Y2')
 %% Standard form of 2nd order system
 wn = 5; % natural frequency
 zeta = .4; % damping ratio
-[num, den] = ord2() % generates  or
+[num, den] = ord2(wn, zeta); % generates a standard continuous 2nd order LTI model
+num = 5^2 * num;
+printsys(num, den, 's');
+
+t = 0:0.01:3;
+
+% Obtaining step response
+% step(num, den);
+[y,x,t] = step(num, den, t);
+plot(t, y);
+grid
+title (' Unit-Step Response of G(s) = 25/(s^2+4s+25)')
+xlabel('t - sec')
+ylabel('Output')
+
+%% 
+
+
+

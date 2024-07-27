@@ -41,6 +41,7 @@ text(3,0.14,'Y1')
 text(2.8,1.1,'Y2')
 
 %% Standard form of 2nd order system
+% Q3
 wn = 5; % natural frequency
 zeta = .4; % damping ratio
 [num, den] = ord2(wn, zeta); % generates a standard continuous 2nd order LTI model
@@ -57,6 +58,47 @@ grid
 title (' Unit-Step Response of G(s) = 25/(s^2+4s+25)')
 xlabel('t - sec')
 ylabel('Output')
+
+%% Q4 - 3D plot of unit step response
+t = linspace(0, 10, 51);
+zeta = [0 0.2 0.4 0.6 0.8 1];
+
+y = zeros(length(t), length(zeta)); % Preallocate y with correct dimensions
+
+for n = 1:length(zeta)
+    num = [1];
+    den = [1 2*zeta(n) 1];
+    y(:, n) = step(num, den, t); % Collect step response
+end
+
+length(t)
+length(y)
+
+% Use plot function for 2D plot
+figure;
+plot(t, y);
+grid on;
+title('2D plot of u(t) response');
+xlabel('t (sec)')
+ylabel('Response')
+text(4.1,1.86,'\zeta = 0')
+text(3.5,1.5,'0.2')
+text(3.5,1.24,'0.4')
+text(3.5,1.08,'0.6')
+text(3.5,0.95,'0.8')
+text(3.5,0.86,'1.0')
+
+% Use mesh function for 3D plot
+figure;
+mesh(t, zeta, y'); 
+title('3D plot of u(t) response');
+xlabel('t - sec')
+ylabel('\zeta')
+zlabel('response')
+
+
+
+
 
 
 
