@@ -122,6 +122,34 @@ end
 
 settling_time = (s-1)*0.005
 
+%% Q6 - Unit Impulse Response
+num = 1;
+den = [1 0.2 1];
+impulse(num, den);
+grid
+title('Unit Impulse response')
+
+% when initial conditions are zero, unit impulse response of G(s) is same
+% as unit step response of sG(s), this can be done by increasing order of
+% numerator to 1 by multiplying by s and running unit step response.
+
+num1 = [0 1 0];
+den1 = [1 0.2 1];
+step(num1, den1);
+grid
+title('Unit step response of sG(s)')
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
