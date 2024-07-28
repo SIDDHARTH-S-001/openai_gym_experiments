@@ -276,3 +276,43 @@ title('Response to Initial Condition')
 xlabel('t (sec)')
 ylabel('Output y')
 
+%% Q15 - Ogata solved problem A-5-8
+num = [3 25 72 80];
+den = [1 8 40 96 80];
+sys = tf(num, den);
+step(sys)
+
+%% Q16 - Ogata solved problem A-5-9, unit step and ramp response of given system
+num = [10 4];
+den = [1 4 4];
+sys = tf(num, den);
+step(sys)
+
+t = 0:0.1:10;
+r = t;
+y = lsim(sys,r,t);
+plot(t,y) % always plot with x as 1st argument and y axis as 2nd argument
+
+% den1 = [1 4 4 0]; % added integrator to mimic ramp response with step response
+% sys1 = tf(num, den1);
+% step(sys1) % ramp response
+
+%% Q17 - Ogata solved problem A-5-12, response to arbitrary function
+num = [1 10];
+den = [1 6 9 10];
+sys = tf(num, den);
+t = 0:0.1:20;
+inp = exp(-0.5*t);
+y = lsim(sys, inp, t);
+plot(t, y)
+hold on
+plot(t, inp)
+
+
+
+
+
+
+
+
+
