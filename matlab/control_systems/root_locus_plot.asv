@@ -183,7 +183,7 @@ den_comp = [1 4.6458];
 sys_comp = tf(Kc*num_comp, den_comp);
 sys_compensated = sys_comp*sys_open;
 rlocus(sys_compensated)
-Kv = 5.139; % static velocity constant (higher values is desired as it produces less Ess - steady state error)
+Kv = limit
 
 % Following Method 2: Placing zero at -1 so that it cancels out open loop pole at -1 
 % in that case, pole of compensator must be located at -3.
@@ -193,7 +193,6 @@ den_comp = [1 3];
 sys_comp = tf(Kc*num_comp, den_comp);
 sys_compensated = sys_comp*sys_open;
 rlocus(sys_compensated)
-Kc = 3; % lesser compared to Method 1.
 
 
 
