@@ -195,10 +195,45 @@ sys_compensated = sys_comp*sys_open;
 rlocus(sys_compensated)
 Kc = 3; % lesser compared to Method 1.
 
+%% Comparison of step response of compensated and uncompensated system (Ogata Matlab Program 6-9)
+% Compensator designed with method 1:
+num1 = [12.287 23.876];
+den1 = [1 5.646 16.933 23.876];
+% Compensator designed with method 2:
+num2 = 9;
+den2 = [1 3 9];
+% Uncompensated system
+num = 10;
+den = [1 1 10];
+t = 0:0.05:5;
+c1 = step(num1,den1,t);
+c2 = step(num2,den2,t);
+c = step(num,den,t);
+plot(t,c1,'-',t,c2,'.',t,c,'x')
+grid
+title('Unit-Step Responses of Compensated Systems and Uncompensated System')
+xlabel('t Sec')
+ylabel('Outputs c1, c2, and c')
+text(1.51,1.48,'Compensated System (Method 1)')
+text(0.9,0.48,'Compensated System (Method 2)')
+text(2.51,0.67,'Uncompensated System')
 
-
-
-
+%% Comparison of ramp response of compensated and uncompensated system (Ogata Matlab Program 6-9)
+num1 = [12.287 23.876];
+den1 = [1 5.646 16.933 23.876 0];
+num2 = 9;
+den2 = [1 3 9 0];
+t = 0:0.05:5;
+c1 = step(num1,den1,t);
+c2 = step(num2,den2,t);
+plot(t,c1,'-',t,c2,'.',t,t,'-')
+grid
+title('Unit-Ramp Responses of Compensated Systems')
+xlabel('t Sec')
+ylabel('Unit-Ramp Input and Outputs c1 and c2')
+text(2.55,3.8,'Input')
+text(0.55,2.8,'Compensated System (Method 1)')
+text(2.35,1.75,'Compensated System (Method 2)')
 
 
 
