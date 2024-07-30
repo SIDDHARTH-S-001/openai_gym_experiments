@@ -235,7 +235,87 @@ text(2.55,3.8,'Input')
 text(0.55,2.8,'Compensated System (Method 1)')
 text(2.35,1.75,'Compensated System (Method 2)')
 
+%% Lag compensator - Ogata Example 6-7
+% Steps to be followed:
+% 1) Draw root locus of uncompensated system and locate closed loop poles from transient response.
+% 2) Assume the standard form of lag compensator, given by equation 6-19 Ogata book.
+% 3) Evaluate the particular static error constant provided in the problem.
+% 4) Determine the required increase in static error constant to meet requirement.
+% 5) Determine pole and zero of lag compensator to increase static error constant, without changing the original root locus a lot.
+% 6) Draw new root locus and compare with original.
+% 7) Adjust gain Kc of the compensator from the magnitude condition so that the dominant closed-loop poles lie at the desired location. Kc will be approximately 1.
 
+num = 1.06;
+deno = conv([1 0],conv([1 1], [1 2]));
+sys_open = tf(num, deno);
+denc = [1 3 2 1.06];
+sys_closed = tf(num, denc);
+% for the system above, 
+% zeta = 0.491 (damping ratio of closed loop poles)
+% wn = 0.673 rads/s and Kv = 0.53 s^-1
+% Desired Kv = 5 s^-1 (about 10 times) without much change in original root locus
+% We choose beta = 10, place zero of lag compensator at -0.05 and pole at -0.005.
+% Kv_ = Kc_*beta*Kv, where Kv is static velocity constant of original system, Kc_ is the compensator gain (approx 1) 
+% Kc_ of the compensator is obtained from magnitude condiition so that the dominant closed loop poles lie at the desired location.
+K = 1.0235; % open loop gain 
+Kc_ = K / 1.06;
+num_comp = [1 0.05];
+den_comp = [1 0.005];
+sys_comp = tf(K*num_comp, den_comp);
+sys_compensated = sys_comp*sys_open;
+rlocus(sys_open);
+hold on
+rlocus(sys_compensated)
 
+%%
+% ***** Unit-ramp responses of compensated system and
+% uncompensated system *****
+% ***** Unit-ramp response will be obtained as the unit-step
+% response of C(s)/[sR(s)] *****
+% ***** Enter the numerators and denominators of C1(s)/[sR(s)]
+% and C2(s)/[sR(s)], where C1(s) and C2(s) are Laplace
+% transforms of the outputs of the compensated and un-
+% compensated systems, respectively. *****
+numc = [1.0235 0.0512];
+denc = [1 3.005 2.015 1.0335 0.0512 0];
+num = [1.06];
+den = [1 3 2 1.06 0];
+% ***** Specify the time range (such as t= 0:0.1:50) and enter
+% step command and plot command. *****
+t = 0:0.1:50;
+c1 = step(numc,denc,t);
+c2 = step(num,den,t);
+plot(t,c1,'-',t,c2,'.',t,t,'--')
+grid
+text(2.2,27,'Compensated system');
+text(26,21.3,'Uncompensated system');
+title('Unit-Ramp Responses of Compensated and Uncompensated Systems')
+xlabel('t Sec');
+ylabel('Outputs c1 and c2')
+
+%%
+% ***** Unit-step responses of compensated system and
+% uncompensated system *****
+% ***** Enter the numerators and denominators of the
+% compensated and uncompensated systems *****
+numc = [1.0235 0.0512];
+denc = [1 3.005 2.015 1.0335 0.0512];
+num = [1.06];
+den = [1 3 2 1.06];
+% ***** Specify the time range (such as t = 0:0.1:40) and enter
+% step command and plot command. *****
+t = 0:0.1:40;
+c1 = step(numc,denc,t);
+c2 = step(num,den,t);
+plot(t,c1,'-',t,c2,'.')
+grid
+text(13,1.12,'Compensated system')
+text(13.6,0.88,'Uncompensated system')
+title('Unit-Step Responses of Compensated and Uncompensated Systems')
+xlabel('t Sec')
+ylabel('Outputs c1 and c2')
+
+% Refer to handwritten notes for brian douglas method of finding pole and
+% zero location of lag compensator.
 
 
