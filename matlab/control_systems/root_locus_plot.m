@@ -414,7 +414,24 @@ plot(t, ramp)
 % but not to 20% if gama = beta is required, as in this example. 
 % Note that by not requiring gama = beta, we have an additional parameter to play with and thus can reduce the maximum overshoot.
 
-
+%% Ogata Example 6-10 -> Parallel Compensated system and its response
+% ---------- Unit-step response ----------
+% ***** Enter numerators and denominators of systems with
+% k = 0.4490 and k = 1.4130, respectively. *****
+num1 = [20];
+den1 = [1 5 12.98 20];
+num2 = [20];
+den2 = [1 5 32.26 20];
+t = 0:0.1:10;
+c1 = step(num1,den1,t);
+c2 = step(num2,den2,t);
+plot(t,c1,t,c2)
+text(2.5,1.12,'k = 0.4490')
+text(3.7,0.85,'k = 1.4130')
+grid
+title('Unit-step Responses of Two Systems')
+xlabel('t Sec')
+ylabel('Outputs c1 and c2')
 
 
 
