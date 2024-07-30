@@ -318,4 +318,134 @@ ylabel('Outputs c1 and c2')
 % Refer to handwritten notes for brian douglas method of finding pole and
 % zero location of lag compensator.
 
+%% Ogata Example 6-8 -> Lag-Lead Compensator (Gama != beta)
+num = 4;
+deno = [1 0.5 0];
+denc = [1 0.5 4];
+sys_open = tf(num, deno);
+sys_closed = tf(num, denc);
+r = roots(denc); 
+wn = abs(r(1)); % undamped natural frequency = 2 rads/s
+theta = atan2(imag(r(1)), real(r(1)));
+zeta = abs(cos(theta)); % damping ratio = 0.125
+s = tf('s');
+Kv = dcgain(s*sys_open); % Kv = 8 s^-1
+% Desired damping ratio = 0.5, Wn = 5 rads/s and Kv = 80s^-1
+wn_des = 5;
+zeta_des = 0.5;
+Kv_des = 80;
+num_des = wn_des*wn_des;
+den_des = [1 2*zeta_des*wn_des wn_des*wn_des];
+sys_des = tf(num_des, den_des);
+r_des = roots(den_des);
+% Phase angle (phi) to be compensated by lead compensator = 55 degress. 
+% Choosing zero of lead comp at -0.5 to cancel open loop pole at -0.5,
+% hence pole of lead comp is at -5.02, inorder to contribute to 55 degree phase lead.
+T1 = 1/0.5; % T1 = 2
+gama = 5.02/0.5;
+Kc = 6.26; % obtained from magnitude condition.
+% Beta (for lag comp) is determined from Kv condition.
+beta = 16.04;
+% T2 is chosen based on magnitude condition (approx 1) and 0 > angle > -5 degrees.
+T2 = 5;
+% lead compensator design
+num_lead = [1 0.5];
+den_lead = [1 gama/T1];
+sys_lead = tf(Kc*num_lead, den_lead);
+% lag compensator design
+num_lag = [1 1/T2];
+den_lag = [1 1/(beta*T2)];
+sys_lag = tf(num_lag, den_lag);
+sys_compensated = sys_lead*sys_lag*sys_open;
+sys_compensated_closed = sys_compensated / (1 + sys_compensated);
+% rlocus(sys_compensated)
+% grid
+% step(sys_closed)
+% hold on
+% step(sys_compensated_closed)
+t = 0:0.1:15;
+ramp = t;
+z_closed = lsim(sys_closed, ramp, t);
+z_comp_closed = lsim(sys_compensated_closed, ramp, t);
+plot(t, z_closed);
+hold on
+plot(t, z_comp_closed)
+hold on
+plot(t, ramp)
+
+%% Ogata Example 6-9 -> Lag-Lead Compensator (Gama = beta)
+num = 4;
+deno = [1 0.5 0];
+denc = [1 0.5 4];
+sys_open = tf(num, deno);
+Kv_des = 80;
+% for the same desired dominant closed loop pole locations
+Kc = 10;
+% Angle 55 degrees need to be contributed by lead compensator.
+% Also from magnitude condition, we get, 
+T1 = 0.42;
+beta = 8.34*T1;
+num_lead = [1 1/T1];
+den_lead = [1 beta/T1];
+sys_lead = tf(Kc*num_lead, den_lead);
+T2 = 10; % taken based on magnitude condition of lag comp and angle b/w 0 and -5 degrees.
+num_lag = [1 0.1];
+den_lag = [1 1/(beta*T2)];
+sys_lag = tf(num_lag, den_lag);
+sys_compensated = sys_lead*sys_lag*sys_open;
+sys_closed = sys_open / (1 + sys_open);
+sys_compensated_closed = sys_compensated / (1 + sys_compensated);
+% rlocus(sys_compensated_closed)
+% step(sys_closed)
+% hold on
+% step(sys_compensated_closed)
+t = 0:0.1:15;
+ramp = t;
+z_closed = lsim(sys_closed, ramp, t);
+z_comp_closed = lsim(sys_compensated_closed, ramp, t);
+plot(t, z_closed);
+hold on
+plot(t, z_comp_closed)
+hold on
+plot(t, ramp)
+% The maximum overshoot in the step response of the compensated system is approximately 38%. 
+% (This is much larger than the maximum overshoot of 21% in the design presented in Example 6–8.) 
+% It is possible to decrease the maximum overshoot by a small amount from 38%, 
+% but not to 20% if gama = beta is required, as in this example. 
+% Note that by not requiring gama = beta, we have an additional parameter to play with and thus can reduce the maximum overshoot.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -255,10 +255,161 @@ sys_closed = tf(num, denc);
 % wn = 0.673 rads/s and Kv = 0.53 s^-1
 % Desired Kv = 5 s^-1 (about 10 times) without much change in original root locus
 % We choose beta = 10, place zero of lag compensator at -0.05 and pole at -0.005.
-% Kv'
+% Kv_ = Kc_*beta*Kv, where Kv is static velocity constant of original system, Kc_ is the compensator gain (approx 1) 
+% Kc_ of the compensator is obtained from magnitude condiition so that the dominant closed loop poles lie at the desired location.
+K = 1.0235; % open loop gain 
+Kc_ = K / 1.06;
 num_comp = [1 0.05];
 den_comp = [1 0.005];
-% 
+sys_comp = tf(K*num_comp, den_comp);
+sys_compensated = sys_comp*sys_open;
+rlocus(sys_open);
+hold on
+rlocus(sys_compensated)
+
+%%
+% ***** Unit-ramp responses of compensated system and
+% uncompensated system *****
+% ***** Unit-ramp response will be obtained as the unit-step
+% response of C(s)/[sR(s)] *****
+% ***** Enter the numerators and denominators of C1(s)/[sR(s)]
+% and C2(s)/[sR(s)], where C1(s) and C2(s) are Laplace
+% transforms of the outputs of the compensated and un-
+% compensated systems, respectively. *****
+numc = [1.0235 0.0512];
+denc = [1 3.005 2.015 1.0335 0.0512 0];
+num = [1.06];
+den = [1 3 2 1.06 0];
+% ***** Specify the time range (such as t= 0:0.1:50) and enter
+% step command and plot command. *****
+t = 0:0.1:50;
+c1 = step(numc,denc,t);
+c2 = step(num,den,t);
+plot(t,c1,'-',t,c2,'.',t,t,'--')
+grid
+text(2.2,27,'Compensated system');
+text(26,21.3,'Uncompensated system');
+title('Unit-Ramp Responses of Compensated and Uncompensated Systems')
+xlabel('t Sec');
+ylabel('Outputs c1 and c2')
+
+%%
+% ***** Unit-step responses of compensated system and
+% uncompensated system *****
+% ***** Enter the numerators and denominators of the
+% compensated and uncompensated systems *****
+numc = [1.0235 0.0512];
+denc = [1 3.005 2.015 1.0335 0.0512];
+num = [1.06];
+den = [1 3 2 1.06];
+% ***** Specify the time range (such as t = 0:0.1:40) and enter
+% step command and plot command. *****
+t = 0:0.1:40;
+c1 = step(numc,denc,t);
+c2 = step(num,den,t);
+plot(t,c1,'-',t,c2,'.')
+grid
+text(13,1.12,'Compensated system')
+text(13.6,0.88,'Uncompensated system')
+title('Unit-Step Responses of Compensated and Uncompensated Systems')
+xlabel('t Sec')
+ylabel('Outputs c1 and c2')
+
+% Refer to handwritten notes for brian douglas method of finding pole and
+% zero location of lag compensator.
+
+%% Ogata Example 6-8 -> Lag-Lead Compensator (Gama != beta)
+num = 4;
+deno = [1 0.5 0];
+denc = [1 0.5 4];
+sys_open = tf(num, deno);
+sys_closed = tf(num, denc);
+r = roots(denc); 
+wn = abs(r(1)); % undamped natural frequency = 2 rads/s
+theta = atan2(imag(r(1)), real(r(1)));
+zeta = abs(cos(theta)); % damping ratio = 0.125
+s = tf('s');
+Kv = dcgain(s*sys_open); % Kv = 8 s^-1
+% Desired damping ratio = 0.5, Wn = 5 rads/s and Kv = 80s^-1
+wn_des = 5;
+zeta_des = 0.5;
+Kv_des = 80;
+num_des = wn_des*wn_des;
+den_des = [1 2*zeta_des*wn_des wn_des*wn_des];
+sys_des = tf(num_des, den_des);
+r_des = roots(den_des);
+% Phase angle (phi) to be compensated by lead compensator = 55 degress. 
+% Choosing zero of lead comp at -0.5 to cancel open loop pole at -0.5,
+% hence pole of lead comp is at -5.02, inorder to contribute to 55 degree phase lead.
+T1 = 1/0.5; % T1 = 2
+gama = 5.02/0.5;
+Kc = 6.26; % obtained from magnitude condition.
+% Beta (for lag comp) is determined from Kv condition.
+beta = 16.04;
+% T2 is chosen based on magnitude condition (approx 1) and 0 > angle > -5 degrees.
+T2 = 5;
+% lead compensator design
+num_lead = [1 0.5];
+den_lead = [1 gama/T1];
+sys_lead = tf(Kc*num_lead, den_lead);
+% lag compensator design
+num_lag = [1 1/T2];
+den_lag = [1 1/(beta*T2)];
+sys_lag = tf(num_lag, den_lag);
+sys_compensated = sys_lead*sys_lag*sys_open;
+sys_compensated_closed = sys_compensated / (1 + sys_compensated);
+% rlocus(sys_compensated)
+% grid
+% step(sys_closed)
+% hold on
+% step(sys_compensated_closed)
+t = 0:0.1:15;
+ramp = t;
+z_closed = lsim(sys_closed, ramp, t);
+z_comp_closed = lsim(sys_compensated_closed, ramp, t);
+plot(t, z_closed);
+hold on
+plot(t, z_comp_closed)
+hold on
+plot(t, ramp)
+
+%% Ogata Example 6-9 -> Lag-Lead Compensator (Gama = beta)
+Kv_des = 80;
+% for the same desired dominant closed lop pole locations
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
