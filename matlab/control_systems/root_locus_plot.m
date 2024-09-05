@@ -433,6 +433,96 @@ title('Unit-step Responses of Two Systems')
 xlabel('t Sec')
 ylabel('Outputs c1 and c2')
 
+%% Ogata Solved Problem 6-13
+% Desired System model
+zeta_des = 0.5;
+wn_des = 2;
+num_des = wn_des*wn_des;
+den_des = [1 2*zeta_des*wn_des wn_des*wn_des];
+sys_des = tf(num_des, den_des);
+r_des = roots(den_des);
+% For a series compensated system, the characteresitc eqn is, 1 + GcG(s)H(s).
+num_G = 1;
+den_G = [1 0 0];
+G = tf(num_G, den_G);
+num_H = 1;
+den_H = [0.1 1];
+H = tf(num_H, den_H);
+ch_eqn = 1 + G*H;
+den = [0.1 1 0 0];
+r_ch = roots(den); % 3 roots -> 2 at 0 and 1 at -10
+pole = -1 + 1j*sqrt(3);
+angG = angle(evalfr(G, pole));
+angH = angle(evalfr(H, pole));
+ang_deficit = -(pi - angG - angG + angH)*(180/pi); % 70.89 degrees
+% Through Method 1 (bisection), we get zero at -0.835 and pole at -4.791
+num_comp = [1 0.835];
+den_comp = [1 4.791];
+Gc = tf(num_comp, den_comp);
+sys = Gc*G*H;
+sys_closed = sys/(1 + sys);
+rlocus(sys)
+% step(sys_closed)
+
+%% Solved problem 6-14 - PD controller
+num = 1;
+deno = 10000*[1 0 -1.1772];
+r = roots(deno);
+open = tf(num, deno);
+% desired zeta = 0.7, wn = 0.5 rads/s
+olp = roots(deno); 
+% 2 poles at +-1.085 and 1 zero at -1/Td, because of derivative controller
+rlocus(open)
+zeta_des = 0.7;
+wn_des = 0.5;
+num_des = wn_des;
+den_des = [1 2*wn_des*zeta_des wn_des*wn_des];
+r_des = roots(den_des);
+desired_pole = r_des(1);
+angle_deficit = (pi - angle(evalfr(open, desired_pole)))*(180/pi);
+% angle deficit = 11.9381 which needs to be contributed by the zero at -1/Td.
+% the zero is going to be at (-1/Td, 0) and the pole is at (-0.35, 0.3571)
+% solving graphically we get -1/Td = 2.039
+Td = 1/2.039;
+Kp = 14273; % obtained from magnitude condition. Solve function doesnt work on TF models.
+PD_Controller = Kp*[Td 1];
+
+%% Ogata Solved Problem 6-16
+num = 10;
+deno = conv([1 0], conv([1 2], [1 8]));
+ro = roots(deno); % 3 open loop poles at 0 -2, -8. 
+open = tf(num, deno);
+denc = [1 10 16 10];
+closed = tf(num, denc);
+s = tf('s');
+Kv = dcgain(s*open); % 0.625 -> desired Kv = 80
+% desired dominant poles  at -2 +- j2sqrt(3), now taking one of them
+desired_pole = -2 + 2*1j*sqrt(3);
+angle_deficit = (pi - angle(evalfr(open, desired_pole))) * (180/pi); % 60 degrees to be compensated by lead portion of compensator -> leads to zero at -4.
+T1 = 1/4;
+% from magnitude condition we get, beta / T1 = 53.35
+beta = 53.35 * T1; % 13.3375
+% following beta = gama method
+Kv_des = 80;
+Kc = Kv_des / dcgain(s*open);
+% For lag portion, we choose beta*T2 = 1000
+T2 = 1000/beta;
+num_comp = 128*conv([1 1/T1], [1 1/T2]);
+den_comp = conv([1 beta/T1], [1 1/(beta*T2)]);
+comp = tf(num_comp, den_comp);
+compensated_open = comp*open;
+compensated_closed = compensated_open / (1 + compensated_open);
+% step(closed);
+% hold on
+% step(compensated_closed)
+rlocus(compensated_open)
+hold on
+plot(desired_pole)
+
+
+
+
+
 
 
 
