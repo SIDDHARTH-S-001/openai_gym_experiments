@@ -31,7 +31,7 @@ C = [1 0 0 0;
 D = [0 0];
 
 sys = ss(A, B.', C, D.');
-
+sys_tf = ss2tf(A, B.', C, D.');
 
 
 
