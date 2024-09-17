@@ -2,8 +2,8 @@ import random
 # Chromosomes are a string in population
 POP_SIZE = 500 # Number of Chromosomes in our list
 MUT_RATE = 0.1 # Rate at which our string will be changed
-TARGET = 'siddharth' # Goal string
-GENES = ' abcdefghijklmnopqrstuvwxyz' # Available options
+TARGET = 'RanDomName_123@eXamPLe.COm' # Goal string
+GENES = ' abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()_+/*,./;[]' # Available options
 
 def initialize_pop(TARGET):
     population = list()
