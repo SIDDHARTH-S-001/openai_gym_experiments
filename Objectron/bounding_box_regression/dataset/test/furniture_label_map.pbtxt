@@ -1,0 +1,15 @@
+item {
+    name: "Chair",
+    id: 1,
+    display_name: "Chair"
+}
+item {
+    name: "Sofa",
+    id: 2,
+    display_name: "Sofa"
+}
+item {
+    name: "Table",
+    id: 3,
+    display_name: "Table"
+}
