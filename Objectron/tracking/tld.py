@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import time
+from scipy.ndimage import gaussian_filter
 
 class Tracker:
     def __init__(self, initial_bbox):
@@ -12,9 +13,9 @@ class Tracker:
     def initialize_tracking_points(self, frame):
         x, y, w, h = self.bbox
         grid_x, grid_y = np.meshgrid(
-            np.linspace(x, x + w, 10),
+            np.linspace(x, x + w, 10), 
             np.linspace(y, y + h, 10)
-        )
+        ) # start, stop and number of points
         self.tracking_points = np.array([grid_x.ravel(), grid_y.ravel()], dtype=np.float32).T
 
     def track(self, prev_frame, curr_frame):
@@ -48,6 +49,150 @@ class Tracker:
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cv2.putText(frame, "Tracking", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
+class Detector:
+    def __init__(self, initial_patch, relative_similarity_threshold=0.6, variance_threshold=0.5):
+        self.initial_patch = initial_patch
+        self.relative_similarity_threshold = relative_similarity_threshold
+        self.variance_threshold = variance_threshold
+        self.gaussian_std = 3
+        self.base_classifiers = 13  # Number of binary comparisons in each base classifier
+        self.posterior_table = self._initialize_posterior_table()
+        self.positive_samples = []
+        self.negative_samples = []
+    
+    def generate_scanning_windows(self, frame):
+        """Generates scanning windows across the frame with specified scale and shift."""
+        height, width = frame.shape[:2]
+        scale_factor = 1.2
+        windows = []
+        
+        # Scaling the window from 1.0 to accommodate different object sizes
+        for scale in np.arange(1.0, 3.0, scale_factor):
+            win_width, win_height = int(self.initial_patch[2] * scale), int(self.initial_patch[3] * scale)
+            for y in range(0, height - win_height, int(0.1 * height)):
+                for x in range(0, width - win_width, int(0.1 * width)):
+                    windows.append((x, y, win_width, win_height))
+        
+        return windows
+
+    def patch_variance(self, frame, patch):
+        """Calculate the gray-value variance of a patch and compare it to initial patch."""
+        x, y, w, h = patch
+        patch_frame = frame[y:y+h, x:x+w]
+        initial_patch_frame = frame[
+            self.initial_patch[1]:self.initial_patch[1] + self.initial_patch[3],
+            self.initial_patch[0]:self.initial_patch[0] + self.initial_patch[2]
+        ]
+        
+        # Calculate variance
+        initial_variance = np.var(initial_patch_frame)
+        patch_variance = np.var(patch_frame)
+        
+        # Check if the patch variance is more than 50% of the initial patch variance
+        return patch_variance >= self.variance_threshold * initial_variance
+
+    def ensemble_classification(self, patch_frame):
+        """Perform ensemble classification using pixel comparisons to generate binary codes."""
+        patch_frame = gaussian_filter(patch_frame, sigma=self.gaussian_std)  # Gaussian blur
+
+        # Discretize and perform pixel comparisons
+        comparisons = self._generate_pixel_comparisons(patch_frame)
+        
+        # Generate binary codes and get posterior probability
+        binary_code = self._generate_binary_code(comparisons)
+        posterior_probability = np.mean([self.posterior_table[code] for code in binary_code])
+
+        # Classify as object if the average posterior is larger than 0.5
+        return posterior_probability > 0.5
+
+    def _generate_pixel_comparisons(self, patch_frame):
+        """Generate pixel comparisons (both horizontal and vertical) within a patch."""
+        h, w = patch_frame.shape
+        comparisons = []
+
+        # Normalize and discretize the pixel locations within the patch
+        num_comparisons = self.base_classifiers  # Number of comparisons per classifier
+        for _ in range(num_comparisons):
+            y1, x1 = np.random.randint(0, h), np.random.randint(0, w)
+            y2, x2 = np.random.randint(0, h), np.random.randint(0, w)
+            comparisons.append((patch_frame[y1, x1], patch_frame[y2, x2]))
+
+        return comparisons
+
+    def _generate_binary_code(self, comparisons):
+        """Generate binary code from pixel comparisons for ensemble classification."""
+        binary_code = []
+        for val1, val2 in comparisons:
+            binary_code.append(1 if val1 > val2 else 0)
+        return binary_code
+
+    def _initialize_posterior_table(self):
+        """Initialize posterior table based on #p/(#p + #n) for binary codes."""
+        num_codes = 2 ** self.base_classifiers
+        posterior_table = np.zeros(num_codes)
+
+        # This table could be updated as new positive and negative examples are added
+        for i in range(num_codes):
+            num_positives = np.random.randint(1, 10)  # Placeholder positive counts
+            num_negatives = np.random.randint(1, 10)  # Placeholder negative counts
+            posterior_table[i] = num_positives / (num_positives + num_negatives)
+
+        return posterior_table
+
+    def nearest_neighbor_classification(self, patch_frame):
+        """Perform nearest neighbor classification to determine if patch matches object."""
+        if not self.positive_samples or not self.negative_samples:
+            return False
+
+        # Flatten the patch for simplicity
+        patch_feature = patch_frame.flatten()
+        
+        # Calculate similarities with positive and negative patches
+        S_plus = self._max_similarity(patch_feature, self.positive_samples)
+        S_minus = self._max_similarity(patch_feature, self.negative_samples)
+        S_plus_50 = self._max_similarity_50_percent(patch_feature, self.positive_samples)
+
+        # Calculate relative similarity
+        relative_similarity = S_plus / (S_plus + S_minus)
+
+        # Calculate conservative similarity
+        conservative_similarity = S_plus_50 / (S_plus_50 + S_minus)
+
+        # Determine if the patch is positive based on relative similarity threshold
+        return relative_similarity > self.relative_similarity_threshold
+
+    def _max_similarity(self, patch_feature, sample_set):
+        """Calculate the maximum similarity between the patch and a sample set (positive or negative)."""
+        return max(np.dot(patch_feature, sample.flatten()) / 
+                (np.linalg.norm(patch_feature) * np.linalg.norm(sample.flatten()))
+                for sample in sample_set)
+
+    def _max_similarity_50_percent(self, patch_feature, positive_samples):
+        """Calculate the maximum similarity within the first 50% of positive samples."""
+        num_samples = len(positive_samples)
+        num_50_percent = max(1, num_samples // 2)  # Ensure at least one sample
+        return max(np.dot(patch_feature, positive_samples[i].flatten()) / 
+                (np.linalg.norm(patch_feature) * np.linalg.norm(positive_samples[i].flatten()))
+                for i in range(num_50_percent))
+
+
+    def detect_object(self, frame):
+        """Main function to detect object by iterating over patches in the frame."""
+        detected_patches = []
+        windows = self.generate_scanning_windows(frame)
+
+        for patch in windows:
+            if self.patch_variance(frame, patch):
+                x, y, w, h = patch
+                patch_frame = frame[y:y+h, x:x+w]
+
+                # Run ensemble classification
+                if self.ensemble_classification(patch_frame):
+                    # Run nearest neighbor classifier
+                    if self.nearest_neighbor_classification(patch_frame):
+                        detected_patches.append(patch)
+
+        return detected_patches
 
 # Main code to use the TLDTracker
 # Try using a specific backend (e.g., cv2.CAP_DSHOW for DirectShow on Windows)
