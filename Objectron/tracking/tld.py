@@ -194,6 +194,123 @@ class Detector:
 
         return detected_patches
 
+class Learning:
+    def __init__(self, object_model, precision_P=0.9, recall_P=0.8, precision_N=0.9, recall_N=0.8, lambda_param=0.1):
+        """
+        Initializes the TLD Learning component.
+
+        Parameters:
+        object_model: The object model with positive and negative samples (patches).
+        precision_P: Precision of the positive expert.
+        recall_P: Recall of the positive expert.
+        precision_N: Precision of the negative expert.
+        recall_N: Recall of the negative expert.
+        lambda_param: Margin threshold for adding new samples.
+        """
+        self.object_model = object_model
+        self.precision_P = precision_P
+        self.recall_P = recall_P
+        self.precision_N = precision_N
+        self.recall_N = recall_N
+        self.lambda_param = lambda_param
+
+    def update_model(self, new_patch, label, classifier_label, detection_confidence):
+        """
+        Updates the object model with a new labeled patch.
+
+        Parameters:
+        new_patch: The new patch to be added.
+        label: The true label of the new patch (1 for positive, 0 for negative).
+        classifier_label: The label given by the NN classifier (1 for positive, 0 for negative).
+        detection_confidence: Confidence score from detection (probability or score).
+        """
+        if label == 1:
+            self._add_positive_sample(new_patch, classifier_label, detection_confidence)
+        elif label == 0:
+            self._add_negative_sample(new_patch, classifier_label)
+
+    def _add_positive_sample(self, patch, classifier_label, detection_confidence):
+        """
+        Adds a positive sample to the model if it meets the criteria based on the P-expert.
+
+        Parameters:
+        patch: The patch to be considered.
+        classifier_label: The label given by the NN classifier (1 for positive, 0 for negative).
+        detection_confidence: Confidence score from detection.
+        """
+        if classifier_label != 1 and detection_confidence > self.precision_P:
+            self.object_model.add_positive_patch(patch)
+        elif abs(detection_confidence - 0.5) < self.lambda_param:
+            self.object_model.add_positive_patch(patch)
+
+    def _add_negative_sample(self, patch, classifier_label):
+        """
+        Adds a negative sample to the model if it meets the criteria based on the N-expert.
+
+        Parameters:
+        patch: The patch to be considered.
+        classifier_label: The label given by the NN classifier (1 for positive, 0 for negative).
+        """
+        if classifier_label == 1 and np.random.rand() < self.recall_N:
+            self.object_model.add_negative_patch(patch)
+
+    def run_PN_learning(self, tracked_patches, detected_patches):
+        """
+        Runs P-N learning to update the model based on tracked and detected patches.
+
+        Parameters:
+        tracked_patches: List of patches from the tracker.
+        detected_patches: List of patches from the detector.
+        """
+        for patch, detection_confidence in tracked_patches:
+            label = 1
+            classifier_label = self._classify_patch(patch)
+            self.update_model(patch, label, classifier_label, detection_confidence)
+
+        for patch, label, detection_confidence in detected_patches:
+            classifier_label = self._classify_patch(patch)
+            self.update_model(patch, label, classifier_label, detection_confidence)
+
+    def _classify_patch(self, patch):
+        """
+        Classifies a patch using the nearest neighbor classifier in the object model.
+
+        Parameters:
+        patch: The patch to classify.
+
+        Returns:
+        classifier_label: 1 if classified as positive, 0 otherwise.
+        """
+        classifier_label, _ = self.object_model.classify_patch(patch)
+        return classifier_label
+
+class ObjectModel:
+    def __init__(self):
+        self.positive_patches = []
+        self.negative_patches = []
+
+    def add_positive_patch(self, patch):
+        self.positive_patches.append(patch)
+
+    def add_negative_patch(self, patch):
+        self.negative_patches.append(patch)
+
+    def classify_patch(self, patch):
+        max_positive_similarity = max([self._similarity(patch, pos_patch) for pos_patch in self.positive_patches], default=0)
+        max_negative_similarity = max([self._similarity(patch, neg_patch) for neg_patch in self.negative_patches], default=0)
+
+        if max_positive_similarity + max_negative_similarity > 0:
+            relative_similarity = max_positive_similarity / (max_positive_similarity + max_negative_similarity)
+        else:
+            relative_similarity = 0
+
+        label = 1 if relative_similarity > 0.5 else 0
+        return label, relative_similarity
+
+    def _similarity(self, patch1, patch2):
+        return np.dot(patch1.flatten(), patch2.flatten()) / (np.linalg.norm(patch1) * np.linalg.norm(patch2))
+
+
 # Main code to use the TLDTracker
 # Try using a specific backend (e.g., cv2.CAP_DSHOW for DirectShow on Windows)
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
