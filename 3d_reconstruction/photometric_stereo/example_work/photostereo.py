@@ -1,6 +1,11 @@
+## This Example has been picked up from, 
+## https://github.com/visiont3lab/photometric_stereo.git.
+
 import cv2 as cv
 import numpy as np
 import vtk
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 class photometry:
 
@@ -167,7 +172,7 @@ class photometry:
 
     def computedepthmap(self):
         h = self.normalmap.shape[0]
-        w = self.normalmap.shape[1] 
+        w = self.normalmap.shape[1]
         P = np.zeros((h, w, 2), dtype=np.float32)
         Q = np.zeros((h, w, 2), dtype=np.float32)
         tempZ = np.zeros((h, w, 2), dtype=np.float32)
@@ -179,25 +184,34 @@ class photometry:
         cv.dft(self.pgrads, P, cv.DFT_COMPLEX_OUTPUT)
         cv.dft(self.qgrads, Q, cv.DFT_COMPLEX_OUTPUT)
 
-        # Integrate P and Q to obtain depth in frequency domain.
-        for i in range (1, h):
-            for j in range (1, w):
+        for i in range(1, h):
+            for j in range(1, w):
                 u = np.sin(i * 2 * np.pi / h)
                 v = np.sin(j * 2 * np.pi / w)
                 uv = np.float_power(u, 2) + np.float_power(v, 2)
-                d = (1 + landa)*uv + mu*np.float_power(uv, 2)
-                tempZ [i, j, 0] = (u*P[i, j, 1] + v*Q[i, j, 1]) / d
-                tempZ [i, j, 1] = (-u*P[i, j, 0] - v*Q[i, j, 0]) / d
-        # Sets the DC (zero frequency) component of tempZ to zero, which corresponds to the mean height of the surface.
+                d = (1 + landa) * uv + mu * np.float_power(uv, 2)
+                tempZ[i, j, 0] = (u * P[i, j, 1] + v * Q[i, j, 1]) / d
+                tempZ[i, j, 1] = (-u * P[i, j, 0] - v * Q[i, j, 0]) / d
+
         tempZ[0, 0, 0] = 0
         tempZ[0, 0, 1] = 0
         flags = cv.DFT_INVERSE + cv.DFT_SCALE + cv.DFT_REAL_OUTPUT
         cv.dft(tempZ, self.Z, flags)
+
+        # Normalize the depth map for visualization
         z_norm = cv.normalize(self.Z, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
-        if self.display:
-            cv.imshow('z_norm', z_norm)
-            cv.waitKey(0)
-            cv.destroyAllWindows()
+
+        # Interactive 3D Plot
+        X, Y = np.meshgrid(np.arange(w), np.arange(h))  # Create grid for plotting
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot_surface(X, Y, self.Z, cmap='viridis', edgecolor='none')  # Use Z for depth
+        ax.set_title("Interactive Depth Map")
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Depth (Z)")
+        plt.show()
+
         return z_norm
 
     def computedepth2(self):
