@@ -1,3 +1,6 @@
+## This Example has been picked up from, 
+## https://github.com/visiont3lab/photometric_stereo.git.
+
 from photostereo import photometry
 import cv2 as cv
 import time
