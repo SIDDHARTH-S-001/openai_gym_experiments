@@ -5,8 +5,8 @@ import vtk
 class photometry:
 
     def __init__(self, numimg, display):
-        self.IMAGES = numimg
-        self.display = display
+        self.IMAGES = numimg # number of images
+        self.display = display # whether to display output or not
         self.normalmap = []
         self.albedo = []
         self.pgrads = []
@@ -21,7 +21,7 @@ class photometry:
         if (mask is not None):
             self.mask = mask
             for id in range(0, self.IMAGES):
-                input_array[id] = np.multiply(input_array[id], mask/255)
+                input_array[id] = np.multiply(input_array[id], mask/255) # scaled to [0, 1].
 
         # Convert input array to float img array
         input_arr_conv = []
@@ -34,14 +34,15 @@ class photometry:
         self.normalmap = np.zeros((h, w, 3), dtype=np.float32)
         self.pgrads = np.zeros((h, w), dtype=np.float32)
         self.qgrads = np.zeros((h, w), dtype=np.float32)
-        lpinv = np.linalg.pinv(self.light_mat)
+        lpinv = np.linalg.pinv(self.light_mat) # pinv - pseudo-inverse
         intensities = []
         norm = []
         for imid in range(0, self.IMAGES):
             a = np.array(input_arr_conv[imid]).reshape(-1)
             intensities.append(a)
         intensities = np.array(intensities)
-        rho_z = np.einsum('ij,jk->ik', lpinv, intensities)
+        rho_z = np.einsum('ij,jk->ik', lpinv, intensities) 
+        # Multiplies the pseudo-inverse of the light matrix with the intensity vectors to compute surface normals.
         rho = rho_z.transpose()
         norm.append(np.sum(np.abs(rho)**2, axis=-1)**(1./2))
         norm_t = np.array(norm).transpose()
@@ -129,15 +130,15 @@ class photometry:
         self.light_mat = light_mat
         print("Light matrix set")
 
-    def setlmfromts(self, tilt, slant):
+    def setlmfromts(self, tilt, slant): # tilt - phi, slant - theta (spherical polar coordinates)
         # todo: add check on tilt and slant size
         self.light_mat = np.zeros((self.IMAGES, 3), dtype=np.float32)
-        rads = 180 / np.pi
+        rads = 180 / np.pi # values given in input are in degrees.
         for id in range (0 , self.IMAGES):
-            self.light_mat[id , 0] = np.cos(tilt[id] / rads)
-            self.light_mat[id , 1] = np.sin(tilt[id] / rads)
-            self.light_mat[id , 2] = np.cos(slant[id] / rads)
-            norm = np.linalg.norm(self.light_mat[id])
+            self.light_mat[id , 0] = np.cos(tilt[id] / rads) # x
+            self.light_mat[id , 1] = np.sin(tilt[id] / rads) # y
+            self.light_mat[id , 2] = np.cos(slant[id] / rads) # z 
+            norm = np.linalg.norm(self.light_mat[id]) # euclidiean normalization
             self.light_mat[id] = self.light_mat[id]/norm
         print("Light matrix set from Tilt&Slant")
         print(self.light_mat)
@@ -145,8 +146,8 @@ class photometry:
     def settsfromlm(self):
         print("TODO")
         rads = 180 / np.pi
-        lightarr = np.asarray(self.light_mat).reshape(-1)
-        tiltslant = np.zeros((self.IMAGES * 2), dtype=np.float32)
+        lightarr = np.asarray(self.light_mat).reshape(-1) # matrix is flattened into 1D array.
+        tiltslant = np.zeros((self.IMAGES * 2), dtype=np.float32) # as image has 1 tilt and 1 slant value (total 2).
         for id in range (0, self.IMAGES):
             slant = rads * np.arccos(lightarr[3 * id + 1])
             if (lightarr[3 * id] < 0):
@@ -166,16 +167,19 @@ class photometry:
 
     def computedepthmap(self):
         h = self.normalmap.shape[0]
-        w = self.normalmap.shape[1]
+        w = self.normalmap.shape[1] 
         P = np.zeros((h, w, 2), dtype=np.float32)
         Q = np.zeros((h, w, 2), dtype=np.float32)
         tempZ = np.zeros((h, w, 2), dtype=np.float32)
         self.Z = np.zeros((h, w), dtype=np.float32)
+        # The parameters below are used to prevent numerical instabilities at low frequencies.
         landa = 1.0
         mu = 1.0
+        # Transformed into frequency domain.
         cv.dft(self.pgrads, P, cv.DFT_COMPLEX_OUTPUT)
         cv.dft(self.qgrads, Q, cv.DFT_COMPLEX_OUTPUT)
 
+        # Integrate P and Q to obtain depth in frequency domain.
         for i in range (1, h):
             for j in range (1, w):
                 u = np.sin(i * 2 * np.pi / h)
@@ -184,6 +188,7 @@ class photometry:
                 d = (1 + landa)*uv + mu*np.float_power(uv, 2)
                 tempZ [i, j, 0] = (u*P[i, j, 1] + v*Q[i, j, 1]) / d
                 tempZ [i, j, 1] = (-u*P[i, j, 0] - v*Q[i, j, 0]) / d
+        # Sets the DC (zero frequency) component of tempZ to zero, which corresponds to the mean height of the surface.
         tempZ[0, 0, 0] = 0
         tempZ[0, 0, 1] = 0
         flags = cv.DFT_INVERSE + cv.DFT_SCALE + cv.DFT_REAL_OUTPUT

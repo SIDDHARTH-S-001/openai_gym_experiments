@@ -3,9 +3,8 @@ import cv2 as cv
 import time
 import numpy as np
 
-
 IMAGES = 12
-root_fold = "./samples/buddha12/"
+root_fold = "experiments/3d_reconstruction/photometric_stereo/example_work/samples/buddha12/buddha12/"
 obj_name = "buddha."
 format = ".bmp"
 light_manual = False
@@ -20,7 +19,7 @@ for id in range(0, IMAGES):
     except cv.error as err:
         print(err)
 
-myps = photometry(IMAGES, True)
+myps = photometry(IMAGES, True) # params: num_images, display (bool)
 
 if light_manual:
     # SETTING LIGHTS MANUALLY
@@ -50,11 +49,15 @@ else:
     #print(myps.settsfromlm())
 
 tic = time.process_time()
+# The mask provided gives the region of interest (ROI). This mask is used to exclude regions without valid data.
 mask = cv.imread(root_fold + "mask" + format, cv.IMREAD_GRAYSCALE)
 normal_map = myps.runphotometry(image_array, np.asarray(mask, dtype=np.uint8))
 normal_map = cv.normalize(normal_map, None, 0, 255, cv.NORM_MINMAX, cv.CV_8UC3)
+# Normalizes the normal map to the range [0, 255] for visualization or further processing.
+# Converts the data to an 8-bit, 3-channel (RGB) format.
 albedo = myps.getalbedo()
 albedo = cv.normalize(albedo, None, 0, 255, cv.NORM_MINMAX, cv.CV_8UC1)
+# Normalizes the albedo map to the range [0, 255] and converts it to an 8-bit, single-channel (grayscale) format.
 #gauss = myps.computegaussian()
 #med = myps.computemedian()
 
