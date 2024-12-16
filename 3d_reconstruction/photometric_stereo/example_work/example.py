@@ -16,7 +16,7 @@ light_manual = False
 
 def plot_normal_map_3d(normal_map, mask):
     """
-    Visualize the normal map as a 3D interactive plot.
+    Visualize the normal map as a 3D surface with normals mapped to colors.
     
     Parameters:
         - normal_map: Normal map (h x w x 3), where each pixel contains (nx, ny, nz).
@@ -24,28 +24,30 @@ def plot_normal_map_3d(normal_map, mask):
     """
     # Get the dimensions
     h, w, _ = normal_map.shape
-    
-    # Normalize normal map to range [-1, 1] for 3D plotting
-    normals = normal_map / 127.5 - 1.0  # Scale from [0, 255] to [-1, 1]
-    nx, ny, nz = normals[:, :, 0], normals[:, :, 1], normals[:, :, 2]
 
-    # Generate grid for plotting
+    # Normalize normal map to [0, 1] for color mapping
+    normals = normal_map / 255.0  # Scale to [0, 1]
+    normals[mask == 0] = 0  # Set masked regions to 0 (black)
+
+    # Generate X, Y grid for the surface plot
     X, Y = np.meshgrid(np.arange(w), np.arange(h))
 
-    # Mask out invalid regions
-    nx[mask == 0] = 0
-    ny[mask == 0] = 0
-    nz[mask == 0] = 0
+    # Height (Z) values - set to zeros for flat visualization
+    Z = np.zeros_like(X, dtype=np.float32)
+    Z[mask == 0] = np.nan  # Ignore masked areas in the plot
 
-    # Plotting
+    # Plot the surface with colors mapped to normals
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.quiver(X, Y, np.zeros_like(X), nx, ny, nz, length=0.1, normalize=True, color="blue")
-    ax.set_title("Interactive Normal Map Visualization")
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
-    ax.set_zlabel("Normals")
+    ax.plot_surface(X, Y, Z, facecolors=normals, rstride=1, cstride=1, linewidth=0, antialiased=False)
+
+    # Remove axis ticks for cleaner visualization
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_zticks([])
+    ax.set_title("Interactive Colored Normal Map")
     plt.show()
+
 
 #Load input image array
 image_array = []
