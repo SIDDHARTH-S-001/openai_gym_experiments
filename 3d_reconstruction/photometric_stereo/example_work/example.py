@@ -5,12 +5,47 @@ from photostereo import photometry
 import cv2 as cv
 import time
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 IMAGES = 12
 root_fold = "experiments/3d_reconstruction/photometric_stereo/example_work/samples/buddha12/buddha12/"
 obj_name = "buddha."
 format = ".bmp"
 light_manual = False
+
+def plot_normal_map_3d(normal_map, mask):
+    """
+    Visualize the normal map as a 3D interactive plot.
+    
+    Parameters:
+        - normal_map: Normal map (h x w x 3), where each pixel contains (nx, ny, nz).
+        - mask: Mask (h x w) defining the region of interest.
+    """
+    # Get the dimensions
+    h, w, _ = normal_map.shape
+    
+    # Normalize normal map to range [-1, 1] for 3D plotting
+    normals = normal_map / 127.5 - 1.0  # Scale from [0, 255] to [-1, 1]
+    nx, ny, nz = normals[:, :, 0], normals[:, :, 1], normals[:, :, 2]
+
+    # Generate grid for plotting
+    X, Y = np.meshgrid(np.arange(w), np.arange(h))
+
+    # Mask out invalid regions
+    nx[mask == 0] = 0
+    ny[mask == 0] = 0
+    nz[mask == 0] = 0
+
+    # Plotting
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.quiver(X, Y, np.zeros_like(X), nx, ny, nz, length=0.1, normalize=True, color="blue")
+    ax.set_title("Interactive Normal Map Visualization")
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Normals")
+    plt.show()
 
 #Load input image array
 image_array = []
@@ -76,7 +111,8 @@ print("Process duration: " + str(toc - tic))
 myps.computedepthmap()
 # myps.computedepth2()
 # myps.display3dobj()
-cv.imshow("normal", normal_map)
+# cv.imshow("normal", normal_map)
+plot_normal_map_3d(normal_map, mask)
 #cv.imshow("mean", med)
 #cv.imshow("gauss", gauss)
 cv.waitKey(0)
