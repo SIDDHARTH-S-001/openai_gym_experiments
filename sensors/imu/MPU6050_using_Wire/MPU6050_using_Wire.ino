@@ -9,8 +9,9 @@ const int ACCEL_XOUT_H = 0x3B;    // Accelerometer data registers
 const int GYRO_XOUT_H = 0x43;     // Gyroscope data registers
 const int AFS_SEL = 0x00;         // Accelerometer Full Scale Value set to +-2g
 const int FS_SEL = 0x01;          // Gyroscope Full Scale Value set to +-500 degree/sec
-const int DLPF_CFG = 0x00;        // Digital Low Pass Filter disabled (Gyro output rate 8KHz, Accl Bandwidth 1KHz)
+// const int DLPF_CFG = 0x00;        // Digital Low Pass Filter disabled (Gyro output rate 8KHz, Accl Bandwidth 1KHz)
 // const int DLPF_CFG = 0x01;     // Digital Low Pass Filter (Accl Bandwidth 184 Hz, delay 2.0 ms, Gyro Bandwidth 188 Hz, delay 1.9 ms)
+const int DLPF_CFG = 0x06;        // Digital Low Pass Filter: Gyro Bandwidth 5 Hz, delay 19.0 ms
 
 // Other parameters considered
 // Rate Noise Spectral Density - 0.005 (deg/s)/(sqrt(Hz)) (at 10 Hz).
@@ -19,7 +20,9 @@ const int DLPF_CFG = 0x00;        // Digital Low Pass Filter disabled (Gyro outp
 // Damping ratio of 2nd order model > 0.5 (to avoid resonance).
 // Sensitivity scale facor (for 500 dps) - 65.5 (nominal).
 // bias was 0.0213.
+
 // Needs Low Pass Filter with cutoff frequency 5Hz.
+// Using 5Hz LPF (built-in): Bias = 0.015 and Rate Noise Density: 0.0013 rad/s/√Hz
 
 int16_t accelerometer_x, accelerometer_y, accelerometer_z;
 float ax, ay, az;
