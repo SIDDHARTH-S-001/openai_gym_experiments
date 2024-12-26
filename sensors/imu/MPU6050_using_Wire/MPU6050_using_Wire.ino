@@ -11,6 +11,11 @@ const int AFS_SEL = 0x00;         // Accelerometer Full Scale Value set to +-2g
 const int FS_SEL = 0x01;          // Gyroscope Full Scale Value set to +-500 degree/sec
 const int DLPF_CFG = 0x01;        // Digital Low Pass Filter (Accl Bandwidth 184 Hz, delay 2.0 ms, Gyro Bandwidth 188 Hz, delay 1.9 ms)
 
+// Other parameters considered
+// Rate Noise Spectral Density - 0.005 (deg/s)/(sqrt(Hz)) (at 10 Hz).
+// Noise - "Band limited white noise".
+// Damping ratio of 2nd order model > 0.5 (to avoid resonance).
+// Sensitivity scale facor (for 500 dps) - 65.5 (nominal).
 
 int16_t accelerometer_x, accelerometer_y, accelerometer_z;
 float ax, ay, az;
@@ -19,7 +24,10 @@ float gx, gy, gz;
 
 void setup() {
   Wire.begin();
-  Serial.begin(9600);
+  // Baud-rate needs to be really high to ensure higher frequencies don't get aliased down to lower frequencies.
+  // Gyro output rate is 8KHz when DLPF is disabled.
+  // Gyro output rate is KHz when DLPF is enabled.
+  Serial.begin(115200); 
 
   // Wake up the MPU6050 by clearing the sleep bit in PWR_MGMT_1
   Wire.beginTransmission(MPU6050_ADDRESS);
