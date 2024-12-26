@@ -24,6 +24,9 @@ const int DLPF_CFG = 0x06;        // Digital Low Pass Filter: Gyro Bandwidth 5 H
 // Needs Low Pass Filter with cutoff frequency 5Hz.
 // Using 5Hz LPF (built-in): Bias = 0.015 and Rate Noise Density: 0.0013 rad/s/√Hz
 
+// At 10 Hz sampling rate.
+// bias = -0.0019 and rate noise density = 0.00023 dps/√Hz
+
 int16_t accelerometer_x, accelerometer_y, accelerometer_z;
 float ax, ay, az;
 int16_t gyro_x, gyro_y, gyro_z;
@@ -99,5 +102,5 @@ void loop() {
   // Serial.print(", ");
   Serial.println(gz, 7);
 
-  // delay(5); // Adjust the delay as needed
+  delay(100); // Adjust the delay as needed
 }
