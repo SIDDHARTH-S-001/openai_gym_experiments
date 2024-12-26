@@ -91,7 +91,7 @@ void loop() {
   // Serial.print(", ");
   // Serial.print(gy);
   // Serial.print(", ");
-  Serial.println(gz);
+  Serial.println(gz, 7);
 
   delay(10); // Adjust the delay as needed
 }
