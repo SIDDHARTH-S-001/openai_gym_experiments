@@ -165,5 +165,54 @@ ylabel('Magnitude');
 legend;
 grid on;
 
+%% Computing Rate Noise Density
+
+% Sampling frequency
+Fs = length(data_gz_unbiased)/180; % Sampling frequency (Hz) based on earlier calculation
+
+% Time interval between samples
+dt = 1 / Fs;
+
+% Number of samples and total duration
+N = length(data_gz_unbiased); % Total number of samples
+T_total = N * dt; % Total duration (seconds)
+
+% Time cluster sizes (tau) for Allan Variance calculation
+max_clusters = floor(N / 2); % Maximum number of clusters
+taus = dt * (1:max_clusters); % Cluster times (seconds)
+
+% Preallocate Allan Variance array
+allan_variance = zeros(size(taus));
+
+% Compute Allan Variance
+for k = 1:length(taus)
+    m = floor(N / (2 * k)); % Number of clusters for this tau
+    clusters = reshape(data_gz_unbiased(1:m*2*k), [2*k, m]); % Divide data into clusters
+    cluster_means = mean(clusters); % Compute cluster means
+    allan_variance(k) = 0.5 * mean(diff(cluster_means).^2); % Allan Variance
+end
+
+% Allan Deviation (square root of Allan Variance)
+allan_deviation = sqrt(allan_variance);
+
+% Plot Allan Deviation
+figure;
+loglog(taus, allan_deviation, 'b-', 'LineWidth', 1.5);
+grid on;
+title('Allan Deviation');
+xlabel('Cluster Time (\tau) [s]');
+ylabel('Allan Deviation');
+
+% Rate Noise Density Estimation
+% Identify the region where the Allan Deviation curve is flat (white noise)
+% Rate Noise Density is derived from the Allan Deviation in this region
+% (Standard deviation divided by sqrt(tau))
+% Select tau where the slope is -0.5 (white noise region)
+white_noise_region = taus(allan_deviation == min(allan_deviation)); % Adjust this based on visual observation
+rate_noise_density = min(allan_deviation) / sqrt(white_noise_region);
+
+% Display Rate Noise Density
+disp(['Rate Noise Density: ', num2str(rate_noise_density), ' rad/s/√Hz']);
+% Rate Noise Density: 0.00026122 rad/s/√Hz
 
 
