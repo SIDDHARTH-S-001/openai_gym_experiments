@@ -76,7 +76,35 @@ grid on;
 % Optional: Display dominant frequency
 [~, maxIdx] = max(Y_mag); % Find the index of the max amplitude
 dominantFrequency = f(maxIdx); % Get the corresponding frequency
-disp(['Dominant Frequency: ', num2str(dominantFrequency), ' Hz']);
+disp(['Dominant Frequency: ', num2str(dominantFrequency), ' Hz']); % 0.022222 Hz
+
+%% Low Pass Filter
+
+% Define the cutoff frequency and sampling frequency
+Fc = 5; % Cutoff frequency (Hz), adjust based on FFT observation (obtained from datasheet).
+Fs = length(data_gz_unbiased)/180;
+
+% Design a low-pass filter using a Butterworth filter
+% [b, a] = butter(4, Fc/(Fs/2)); % 4th-order Butterworth filter
+[b, a] = butter(6, 5/(Fs/2)); % 6th-order Butterworth filter with 5 Hz cutoff
+
+% Apply the filter to your data
+filtered_data = filtfilt(b, a, data_gz_unbiased);
+
+% Plot the original and filtered signals for comparison
+figure;
+subplot(2, 1, 1);
+plot(data_gz_unbiased);
+title('Original Gyroscope Data');
+xlabel('Samples');
+ylabel('Amplitude');
+
+subplot(2, 1, 2);
+plot(filtered_data);
+title('Filtered Gyroscope Data');
+xlabel('Samples');
+ylabel('Amplitude');
+
 
 
 
