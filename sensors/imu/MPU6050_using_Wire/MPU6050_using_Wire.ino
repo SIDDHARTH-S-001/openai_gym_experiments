@@ -14,9 +14,12 @@ const int DLPF_CFG = 0x00;        // Digital Low Pass Filter disabled (Gyro outp
 
 // Other parameters considered
 // Rate Noise Spectral Density - 0.005 (deg/s)/(sqrt(Hz)) (at 10 Hz).
+// At free run for 3 mins, rate noise density was 0.015 dps/sqrt(Hz). 
 // Noise - "Band limited white noise".
 // Damping ratio of 2nd order model > 0.5 (to avoid resonance).
 // Sensitivity scale facor (for 500 dps) - 65.5 (nominal).
+// bias was 0.0213.
+// Needs Low Pass Filter with cutoff frequency 5Hz.
 
 int16_t accelerometer_x, accelerometer_y, accelerometer_z;
 float ax, ay, az;
