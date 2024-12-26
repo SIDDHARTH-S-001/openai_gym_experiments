@@ -93,5 +93,5 @@ void loop() {
   // Serial.print(", ");
   Serial.println(gz, 7);
 
-  delay(10); // Adjust the delay as needed
+  // delay(5); // Adjust the delay as needed
 }
