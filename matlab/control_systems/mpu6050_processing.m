@@ -34,7 +34,7 @@ disp('Finished reading data.');
 clear s;
 
 % Save data to an Excel file
-fileName = 'mpu_data_gz.xlsx';
+fileName = 'mpu_data_gz_5Hz_LPF.xlsx';
 writematrix(data, fileName);
 
 disp(['Data saved to Excel file: ', fileName]);
