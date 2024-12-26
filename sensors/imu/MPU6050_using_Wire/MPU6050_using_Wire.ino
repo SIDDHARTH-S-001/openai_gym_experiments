@@ -9,7 +9,8 @@ const int ACCEL_XOUT_H = 0x3B;    // Accelerometer data registers
 const int GYRO_XOUT_H = 0x43;     // Gyroscope data registers
 const int AFS_SEL = 0x00;         // Accelerometer Full Scale Value set to +-2g
 const int FS_SEL = 0x01;          // Gyroscope Full Scale Value set to +-500 degree/sec
-const int DLPF_CFG = 0x01;        // Digital Low Pass Filter (Accl Bandwidth 184 Hz, delay 2.0 ms, Gyro Bandwidth 188 Hz, delay 1.9 ms)
+const int DLPF_CFG = 0x00;        // Digital Low Pass Filter disabled (Gyro output rate 8KHz, Accl Bandwidth 1KHz)
+// const int DLPF_CFG = 0x01;     // Digital Low Pass Filter (Accl Bandwidth 184 Hz, delay 2.0 ms, Gyro Bandwidth 188 Hz, delay 1.9 ms)
 
 // Other parameters considered
 // Rate Noise Spectral Density - 0.005 (deg/s)/(sqrt(Hz)) (at 10 Hz).
@@ -79,18 +80,18 @@ void loop() {
   gz = (float(gyro_x)/32767.0)*(500)*(3.1416/180);
 
   // Print the data
-  Serial.print("Accelerometer: (m/s2) ");
-  Serial.print(ax);
-  Serial.print(", ");
-  Serial.print(ay);
-  Serial.print(", ");
-  Serial.print(az);
-  Serial.print(" | Gyroscope: (rads/s) ");
-  Serial.print(gx);
-  Serial.print(", ");
-  Serial.print(gy);
-  Serial.print(", ");
+  // Serial.print("Accelerometer: (m/s2) ");
+  // Serial.print(ax);
+  // Serial.print(", ");
+  // Serial.print(ay);
+  // Serial.print(", ");
+  // Serial.print(az);
+  // Serial.print(" | Gyroscope: (rads/s) ");
+  // Serial.print(gx);
+  // Serial.print(", ");
+  // Serial.print(gy);
+  // Serial.print(", ");
   Serial.println(gz);
 
-  delay(100); // Adjust the delay as needed
+  delay(10); // Adjust the delay as needed
 }
