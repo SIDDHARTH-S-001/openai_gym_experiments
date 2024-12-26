@@ -105,8 +105,65 @@ title('Filtered Gyroscope Data');
 xlabel('Samples');
 ylabel('Amplitude');
 
+%% Digital Low Pass Filter
 
+Fs = length(data_gz_unbiased)/180; % Sampling frequency (Hz), based on your earlier calculation
 
+% Specify cutoff frequency
+Fc = 5; % Desired cutoff frequency (Hz)
+
+% Normalize the cutoff frequency
+Wn = Fc / (Fs / 2); % Normalized cutoff frequency (0 to 1)
+
+% Design a digital low-pass filter
+% Example 1: FIR Filter (Finite Impulse Response)
+fir_order = 50; % Filter order for FIR
+b = fir1(fir_order, Wn, 'low'); % FIR filter coefficients
+
+% Example 2: IIR Filter (Infinite Impulse Response) - Butterworth
+iir_order = 4; % Filter order for IIR
+[b_iir, a_iir] = butter(iir_order, Wn, 'low'); % IIR filter coefficients
+
+% Apply the filters to the gyroscope data
+filtered_data_fir = filter(b, 1, data_gz_unbiased); % FIR filter application
+filtered_data_iir = filter(b_iir, a_iir, data_gz_unbiased); % IIR filter application
+
+% Plot the original and filtered data
+figure;
+subplot(3, 1, 1);
+plot(data_gz_unbiased);
+title('Original Gyroscope Data');
+xlabel('Samples');
+ylabel('Amplitude');
+
+subplot(3, 1, 2);
+plot(filtered_data_fir);
+title('Filtered Data (FIR)');
+xlabel('Samples');
+ylabel('Amplitude');
+
+subplot(3, 1, 3);
+plot(filtered_data_iir);
+title('Filtered Data (IIR)');
+xlabel('Samples');
+ylabel('Amplitude');
+
+% Compare the FFT of original and filtered signals
+Y_orig = abs(fft(data_gz_unbiased));
+Y_fir = abs(fft(filtered_data_fir));
+Y_iir = abs(fft(filtered_data_iir));
+frequencies = (0:length(Y_orig)-1) * Fs / length(Y_orig);
+
+figure;
+plot(frequencies(1:floor(end/2)), Y_orig(1:floor(end/2)), 'k', 'DisplayName', 'Original');
+hold on;
+plot(frequencies(1:floor(end/2)), Y_fir(1:floor(end/2)), 'b', 'DisplayName', 'FIR Filtered');
+plot(frequencies(1:floor(end/2)), Y_iir(1:floor(end/2)), 'r', 'DisplayName', 'IIR Filtered');
+title('Frequency Response of Original and Filtered Data');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+legend;
+grid on;
 
 
 
