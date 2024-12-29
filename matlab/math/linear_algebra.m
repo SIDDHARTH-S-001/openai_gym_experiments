@@ -12,3 +12,22 @@ z = det([A(:,1) A(:,2) D])/det(A);
 
 % Matrix inversion method
 X = inv(A)*D;
+
+%% Exaple 2.46 
+A = [1  1  3;
+     1  3 -3;
+    -2 -4 -4];
+
+ch = poly(A); % characterestic eqn of A.
+% Caley-Hamilton Theorem, every matrix satisfies its characterestic equation.
+A_eqn = (A^3) - 20*A + 8;
+
+% Steps to find inverse.
+% A^3 - 20A + 8 = 0 
+% A^3 - 20A = -8I
+% A_in*A^3 - 20A_inv*A = -8A_inv
+% A^2 - 20I = -8A_inv
+
+I = eye(3);
+A_inv = (5/2)*I - (1/8)*A^2
+
