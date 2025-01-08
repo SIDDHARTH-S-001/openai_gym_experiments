@@ -31,3 +31,20 @@ A_eqn = (A^3) - 20*A + 8;
 I = eye(3);
 A_inv = (5/2)*I - (1/8)*A^2
 
+%% Example 2.49
+clc
+clear
+A = [1 1 3;
+     1 5 1;
+     3 1 1];
+
+[V, D] = eig(A);
+% D - diagonally reduced form of A.
+% D = inv(P) * A * P.
+eig(A);
+% eigenvalues are -2, 3, 6
+% eigenvectors are |A - λI| = 0. Given by V.
+A_4 = V*(D^4)*inv(V)
+
+
+
